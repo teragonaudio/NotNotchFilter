@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-    It contains the basic startup code for a Juce application.
-
-  ==============================================================================
-*/
-
 #ifndef __PLUGINPROCESSOR_H_A4C75B3B__
 #define __PLUGINPROCESSOR_H_A4C75B3B__
 
@@ -17,56 +7,70 @@
 //==============================================================================
 /**
 */
-class HangingValleyAudioProcessor  : public AudioProcessor
-{
+class HangingValleyAudioProcessor  : public AudioProcessor {
 public:
-    //==============================================================================
-    HangingValleyAudioProcessor();
-    ~HangingValleyAudioProcessor();
 
-    //==============================================================================
-    void prepareToPlay (double sampleRate, int samplesPerBlock);
-    void releaseResources();
+  //==============================================================================
+  HangingValleyAudioProcessor();
 
-    void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
+  ~HangingValleyAudioProcessor();
 
-    //==============================================================================
-    AudioProcessorEditor* createEditor();
-    bool hasEditor() const;
+  //==============================================================================
+  void prepareToPlay(double sampleRate, int samplesPerBlock);
 
-    //==============================================================================
-    const String getName() const;
+  void releaseResources();
 
-    int getNumParameters();
+  void processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
-    float getParameter (int index);
-    void setParameter (int index, float newValue);
+  //==============================================================================
+  AudioProcessorEditor *createEditor();
 
-    const String getParameterName (int index);
-    const String getParameterText (int index);
+  bool hasEditor() const;
 
-    const String getInputChannelName (int channelIndex) const;
-    const String getOutputChannelName (int channelIndex) const;
-    bool isInputChannelStereoPair (int index) const;
-    bool isOutputChannelStereoPair (int index) const;
+  //==============================================================================
+  const String getName() const;
 
-    bool acceptsMidi() const;
-    bool producesMidi() const;
+  int getNumParameters();
 
-    //==============================================================================
-    int getNumPrograms();
-    int getCurrentProgram();
-    void setCurrentProgram (int index);
-    const String getProgramName (int index);
-    void changeProgramName (int index, const String& newName);
+  float getParameter(int index);
 
-    //==============================================================================
-    void getStateInformation (MemoryBlock& destData);
-    void setStateInformation (const void* data, int sizeInBytes);
+  void setParameter(int index, float newValue);
+
+  const String getParameterName(int index);
+
+  const String getParameterText(int index);
+
+  const String getInputChannelName(int channelIndex) const;
+
+  const String getOutputChannelName(int channelIndex) const;
+
+  bool isInputChannelStereoPair(int index) const;
+
+  bool isOutputChannelStereoPair(int index) const;
+
+  bool acceptsMidi() const;
+
+  bool producesMidi() const;
+
+  //==============================================================================
+  int getNumPrograms();
+
+  int getCurrentProgram();
+
+  void setCurrentProgram(int index);
+
+  const String getProgramName(int index);
+
+  void changeProgramName(int index, const String& newName);
+
+  //==============================================================================
+  void getStateInformation(MemoryBlock& destData);
+
+  void setStateInformation(const void *data, int sizeInBytes);
 
 private:
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HangingValleyAudioProcessor);
+  //==============================================================================
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HangingValleyAudioProcessor);
 };
 
 #endif  // __PLUGINPROCESSOR_H_A4C75B3B__
