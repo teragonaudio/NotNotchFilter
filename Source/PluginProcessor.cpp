@@ -15,75 +15,109 @@ const String HangingValleyAudioProcessor::getName() const {
 }
 
 int HangingValleyAudioProcessor::getNumParameters() {
-  return 0;
+  return kHangingValleyParamNumParams;
+}
+
+static float scaleFrequencyToParameterRange(float value, float max, float min) {
+  return (logf(value) - logf(min)) / (logf(max) - logf(min));
 }
 
 float HangingValleyAudioProcessor::getParameter(int index) {
-  return 0.0f;
+  switch(index) {
+    case kHangingValleyParamFilterFrequency:
+      return scaleFrequencyToParameterRange(frequency, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+    case kHangingValleyParamResonance:
+      return (resonance - kHangingValleyResonanceMin) / (kHangingValleyResonanceMax - kHangingValleyResonanceMin);
+    case kHangingValleyParamValleySize:
+      return scaleFrequencyToParameterRange(valleySize, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+    default:
+      return 0.0f;
+  };
+}
+static float scaleParameterRangeToFrequency(float value, float max, float min) {
+  float frequency = expf(value * (logf(max) - logf(min)) + logf(min));
+  if(frequency > max) {
+    return max;
+  }
+  else if(frequency < min) {
+    return min;
+  }
+  else {
+    return frequency;
+  }
 }
 
 void HangingValleyAudioProcessor::setParameter(int index, float newValue) {
+  switch(index) {
+    case kHangingValleyParamFilterFrequency:
+      frequency = scaleParameterRangeToFrequency(newValue, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+      break;
+    case kHangingValleyParamResonance:
+      resonance = newValue * (kHangingValleyResonanceMax - kHangingValleyResonanceMin) + kHangingValleyResonanceMin;
+      break;
+    case kHangingValleyParamValleySize:
+      valleySize = scaleParameterRangeToFrequency(newValue, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+      break;
+    default:
+      break;
+  }
 }
 
 const String HangingValleyAudioProcessor::getParameterName(int index) {
-  return String::empty;
+  switch(index) {
+    case kHangingValleyParamFilterFrequency:
+      return String("Frequency");
+    case kHangingValleyParamResonance:
+      return String("Resonance");
+    case kHangingValleyParamValleySize:
+      return String("Valley Size");
+    default:
+      return String::empty;
+  }
+}
+
+static const String getParameterTextForFrequency(const float frequency) {
+  String outText;
+  if(frequency > 1000) {
+    outText = String(frequency / 1000.0f, PARAM_TEXT_NUM_DECIMAL_PLACES);
+    outText.append(String(" kHz"), 4);
+  }
+  else {
+    outText = String(frequency, PARAM_TEXT_NUM_DECIMAL_PLACES);
+    outText.append(String(" Hz"), 3);
+  }
+  return outText;
 }
 
 const String HangingValleyAudioProcessor::getParameterText(int index) {
   return String::empty;
 }
 
-const String HangingValleyAudioProcessor::getInputChannelName(int channelIndex) const {
-  return String(channelIndex + 1);
-}
-
-const String HangingValleyAudioProcessor::getOutputChannelName(int channelIndex) const {
-  return String(channelIndex + 1);
-}
-
-bool HangingValleyAudioProcessor::isInputChannelStereoPair(int index) const {
-  return true;
-}
-
-bool HangingValleyAudioProcessor::isOutputChannelStereoPair(int index) const {
-  return true;
-}
-
-bool HangingValleyAudioProcessor::acceptsMidi() const {
-#if JucePlugin_WantsMidiInput
-    return true;
-#else
-  return false;
-#endif
-}
-
-bool HangingValleyAudioProcessor::producesMidi() const {
-#if JucePlugin_ProducesMidiOutput
-    return true;
-#else
-  return false;
-#endif
-}
-
-int HangingValleyAudioProcessor::getNumPrograms() {
-  return 0;
-}
-
-int HangingValleyAudioProcessor::getCurrentProgram() {
-  return 0;
-}
-
-void HangingValleyAudioProcessor::setCurrentProgram(int index) {
-}
-
-const String HangingValleyAudioProcessor::getProgramName(int index) {
-  return String::empty;
-}
-
-void HangingValleyAudioProcessor::changeProgramName(int index, const String& newName) {
-}
-
 //==============================================================================
+void HangingValleyAudioProcessor::resetLastIOData() {
+  for(int i = 0; i < 2; i++) {
+    lastInput1[i] = 0.0f;
+    lastInput2[i] = 0.0f;
+    lastInput3[i] = 0.0f;
+    lastOutput1[i] = 0.0f;
+    lastOutput2[i] = 0.0f;
+  }
+}
+
+void HangingValleyAudioProcessor::recalculateCoefficients(const double sampleRate, const float frequency, const float resonance) {
+  const float hiCoeffConstant = (float)tan(M_PI * frequency / sampleRate);
+  hiCoeffA1 = 1.0f / ((1.0f + resonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
+  hiCoeffA2 = -2.0f * hiCoeffA1;
+  hiCoeffB1 = 2.0f * hiCoeffA1 * ((hiCoeffConstant * hiCoeffConstant) - 1.0f);
+  hiCoeffB2 = hiCoeffA1 * (1.0f - (resonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
+
+  const float loCoeffConstant = (float)(1.0f / tan(frequency / sampleRate));
+  loCoeffA1 = 1.0f / (1.0f + (resonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
+  loCoeffA2 = 2.0f * loCoeffA1;
+  loCoeffB1 = 2.0f * loCoeffA1 * (1.0f - (loCoeffConstant * loCoeffConstant));
+  loCoeffB2 = loCoeffA1 * (1.0f - (resonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
+}
+
 void HangingValleyAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
   // Use this method as the place to do any pre-playback
   // initialisation that you need..
