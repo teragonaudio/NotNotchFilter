@@ -23,9 +23,9 @@ public:
   void processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
   //==============================================================================
-  AudioProcessorEditor *createEditor();
+  AudioProcessorEditor *createEditor() { return NULL; }
 
-  bool hasEditor() const;
+  bool hasEditor() const { return false; };
 
   //==============================================================================
   const String getName() const;

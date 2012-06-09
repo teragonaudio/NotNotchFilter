@@ -112,15 +112,6 @@ void HangingValleyAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBu
 }
 
 //==============================================================================
-bool HangingValleyAudioProcessor::hasEditor() const {
-  return true; // (change this to false if you choose to not supply an editor)
-}
-
-AudioProcessorEditor *HangingValleyAudioProcessor::createEditor() {
-  return new HangingValleyAudioProcessorEditor (this);
-}
-
-//==============================================================================
 void HangingValleyAudioProcessor::getStateInformation(MemoryBlock& destData) {
   // You should use this method to store your parameters in the memory block.
   // You could do that either as raw data, or use the XML or ValueTree classes
