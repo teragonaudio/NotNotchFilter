@@ -82,16 +82,20 @@ public:
 
 private:
   void resetLastIOData();
-  void recalculateCoefficients(const double sampleRate, const float frequency, const float resonance);
+  void recalculateCoefficients(const double sampleRate, const float filterFrequency, const float filterResonance);
   void processHiFilter(float *channelData, const int channel, const int numSamples);
   void processLoFilter(float *channelData, const int channel, const int numSamples);
 
-  float frequency;
+  float baseFrequency;
+  float loFrequency;
+  float hiFrequency;
   float resonance;
   float valleySize;
 
-  float lastInput1[2], lastInput2[2], lastInput3[2];
-  float lastOutput1[2], lastOutput2[2];
+  float hiLastInput1[2], hiLastInput2[2], hiLastInput3[2];
+  float loLastInput1[2], loLastInput2[2], loLastInput3[2];
+  float hiLastOutput1[2], hiLastOutput2[2];
+  float loLastOutput1[2], loLastOutput2[2];
 
   float loCoeffA1, loCoeffA2;
   float loCoeffB1, loCoeffB2;

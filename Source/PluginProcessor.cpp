@@ -23,15 +23,16 @@ static float scaleFrequencyToParameterRange(float value, float max, float min) {
 float HangingValleyAudioProcessor::getParameter(int index) {
   switch(index) {
     case kHangingValleyParamFilterFrequency:
-      return scaleFrequencyToParameterRange(frequency, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+      return scaleFrequencyToParameterRange(baseFrequency, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
     case kHangingValleyParamResonance:
       return (resonance - kHangingValleyResonanceMin) / (kHangingValleyResonanceMax - kHangingValleyResonanceMin);
     case kHangingValleyParamValleySize:
       return scaleFrequencyToParameterRange(valleySize, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
     default:
       return 0.0f;
-  };
+  }
 }
+
 static float scaleParameterRangeToFrequency(float value, float max, float min) {
   float frequency = expf(value * (logf(max) - logf(min)) + logf(min));
   if(frequency > max) {
@@ -48,7 +49,7 @@ static float scaleParameterRangeToFrequency(float value, float max, float min) {
 void HangingValleyAudioProcessor::setParameter(int index, float newValue) {
   switch(index) {
     case kHangingValleyParamFilterFrequency:
-      frequency = scaleParameterRangeToFrequency(newValue, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+      baseFrequency = scaleParameterRangeToFrequency(newValue, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
       break;
     case kHangingValleyParamResonance:
       resonance = newValue * (kHangingValleyResonanceMax - kHangingValleyResonanceMin) + kHangingValleyResonanceMin;
@@ -59,6 +60,8 @@ void HangingValleyAudioProcessor::setParameter(int index, float newValue) {
     default:
       break;
   }
+
+  recalculateCoefficients(getSampleRate(), baseFrequency, resonance);
 }
 
 const String HangingValleyAudioProcessor::getParameterName(int index) {
@@ -88,37 +91,61 @@ static const String getParameterTextForFrequency(const float frequency) {
 }
 
 const String HangingValleyAudioProcessor::getParameterText(int index) {
-  return String::empty;
+  switch(index) {
+    case kHangingValleyParamFilterFrequency:
+      return getParameterTextForFrequency(baseFrequency);
+    case kHangingValleyParamResonance:
+      return String(resonance, PARAM_TEXT_NUM_DECIMAL_PLACES);
+    case kHangingValleyParamValleySize:
+      return getParameterTextForFrequency(valleySize);
+    default:
+      return String::empty;
+  }
 }
 
 //==============================================================================
 void HangingValleyAudioProcessor::resetLastIOData() {
   for(int i = 0; i < 2; i++) {
-    lastInput1[i] = 0.0f;
-    lastInput2[i] = 0.0f;
-    lastInput3[i] = 0.0f;
-    lastOutput1[i] = 0.0f;
-    lastOutput2[i] = 0.0f;
+    hiLastInput1[i] = 0.0f;
+    hiLastInput2[i] = 0.0f;
+    hiLastInput3[i] = 0.0f;
+    hiLastOutput1[i] = 0.0f;
+    hiLastOutput2[i] = 0.0f;
+    loLastInput1[i] = 0.0f;
+    loLastInput2[i] = 0.0f;
+    loLastInput3[i] = 0.0f;
+    loLastOutput1[i] = 0.0f;
+    loLastOutput2[i] = 0.0f;
   }
 }
 
-void HangingValleyAudioProcessor::recalculateCoefficients(const double sampleRate, const float frequency, const float resonance) {
-  const float hiCoeffConstant = (float)tan(M_PI * frequency / sampleRate);
-  hiCoeffA1 = 1.0f / ((1.0f + resonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
+void HangingValleyAudioProcessor::recalculateCoefficients(const double sampleRate, const float baseFrequency, const float filterResonance) {
+  loFrequency = baseFrequency - valleySize;
+  if(loFrequency < kHangingValleyFrequencyMin) {
+    loFrequency = kHangingValleyFrequencyMin;
+  }
+
+  const float hiCoeffConstant = (float)tan(M_PI * loFrequency / sampleRate);
+  hiCoeffA1 = 1.0f / ((1.0f + filterResonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
   hiCoeffA2 = -2.0f * hiCoeffA1;
   hiCoeffB1 = 2.0f * hiCoeffA1 * ((hiCoeffConstant * hiCoeffConstant) - 1.0f);
-  hiCoeffB2 = hiCoeffA1 * (1.0f - (resonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
+  hiCoeffB2 = hiCoeffA1 * (1.0f - (filterResonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
 
-  const float loCoeffConstant = (float)(1.0f / tan(frequency / sampleRate));
-  loCoeffA1 = 1.0f / (1.0f + (resonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
+  hiFrequency = baseFrequency + valleySize;
+  if(hiFrequency > kHangingValleyFrequencyMax) {
+    hiFrequency = kHangingValleyFrequencyMax;
+  }
+
+  const float loCoeffConstant = (float)(1.0f / tan(hiFrequency / sampleRate));
+  loCoeffA1 = 1.0f / (1.0f + (filterResonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
   loCoeffA2 = 2.0f * loCoeffA1;
   loCoeffB1 = 2.0f * loCoeffA1 * (1.0f - (loCoeffConstant * loCoeffConstant));
-  loCoeffB2 = loCoeffA1 * (1.0f - (resonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
+  loCoeffB2 = loCoeffA1 * (1.0f - (filterResonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
 }
 
 void HangingValleyAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
-  // Use this method as the place to do any pre-playback
-  // initialisation that you need..
+  resetLastIOData();
+  recalculateCoefficients(sampleRate, baseFrequency, resonance);
 }
 
 void HangingValleyAudioProcessor::releaseResources() {
@@ -131,8 +158,33 @@ void HangingValleyAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBu
   // audio processing...
   for(int channel = 0; channel < getNumInputChannels(); ++channel) {
     float *channelData = buffer.getSampleData(channel);
+    for(int i = 0; i < buffer.getNumSamples(); i++) {
+      hiLastInput3[channel] = hiLastInput2[channel];
+      hiLastInput2[channel] = hiLastInput1[channel];
+      hiLastInput1[channel] = channelData[i];
 
-    // ..do something to the data...
+      channelData[i] = (hiCoeffA1 * hiLastInput1[channel]) +
+        (hiCoeffA2 * hiLastInput2[channel]) +
+        (hiCoeffA1 * hiLastInput3[channel]) -
+        (hiCoeffB1 * hiLastOutput1[channel]) -
+        (hiCoeffB2 * hiLastOutput2[channel]);
+
+      hiLastOutput2[channel] = hiLastOutput1[channel];
+      hiLastOutput1[channel] = channelData[i];
+
+      loLastInput3[channel] = loLastInput2[channel];
+      loLastInput2[channel] = loLastInput1[channel];
+      loLastInput1[channel] = channelData[i];
+
+      channelData[i] += (loCoeffA1 * loLastInput1[channel]) +
+        (loCoeffA2 * loLastInput2[channel]) +
+        (loCoeffA1 * loLastInput3[channel]) -
+        (loCoeffB1 * loLastOutput1[channel]) -
+        (loCoeffB2 * loLastOutput2[channel]);
+
+      loLastOutput2[channel] = loLastOutput1[channel];
+      loLastOutput1[channel] = channelData[i];
+    }
   }
 
   // In case we have more outputs than inputs, we'll clear any output
