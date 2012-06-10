@@ -1,6 +1,4 @@
 #include "PluginProcessor.h"
-#include "PluginEditor.h"
-
 
 //==============================================================================
 HangingValleyAudioProcessor::HangingValleyAudioProcessor() {
