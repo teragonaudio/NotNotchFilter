@@ -125,9 +125,9 @@ void HangingValleyAudioProcessor::resetLastIOData() {
 }
 
 void HangingValleyAudioProcessor::recalculateCoefficients(const double sampleRate, const float baseFrequency, const float filterResonance) {
-  loFrequency = baseFrequency - valleySize;
-  if(loFrequency < kHangingValleyFrequencyMin) {
-    loFrequency = kHangingValleyFrequencyMin;
+  loFrequency = baseFrequency + valleySize;
+  if(loFrequency > kHangingValleyFrequencyMax) {
+    loFrequency = kHangingValleyFrequencyMax;
   }
 
   const float hiCoeffConstant = (float)tan(M_PI * loFrequency / sampleRate);
@@ -136,10 +136,7 @@ void HangingValleyAudioProcessor::recalculateCoefficients(const double sampleRat
   hiCoeffB1 = 2.0f * hiCoeffA1 * ((hiCoeffConstant * hiCoeffConstant) - 1.0f);
   hiCoeffB2 = hiCoeffA1 * (1.0f - (filterResonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
 
-  hiFrequency = baseFrequency + valleySize;
-  if(hiFrequency > kHangingValleyFrequencyMax) {
-    hiFrequency = kHangingValleyFrequencyMax;
-  }
+  hiFrequency = baseFrequency;
 
   const float loCoeffConstant = (float)(1.0f / tan(hiFrequency / sampleRate));
   loCoeffA1 = 1.0f / (1.0f + (filterResonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
