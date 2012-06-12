@@ -31,7 +31,7 @@ float HangingValleyAudioProcessor::getParameter(int index) {
     case kHangingValleyParamResonance:
       return (resonance - kHangingValleyResonanceMin) / (kHangingValleyResonanceMax - kHangingValleyResonanceMin);
     case kHangingValleyParamValleySize:
-      return scaleFrequencyToParameterRange(valleySize, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+      return scaleFrequencyToParameterRange(valleySize, kHangingValleyValleySizeMax, kHangingValleyValleySizeMin);
     default:
       return 0.0f;
   }
@@ -59,7 +59,7 @@ void HangingValleyAudioProcessor::setParameter(int index, float newValue) {
       resonance = newValue * (kHangingValleyResonanceMax - kHangingValleyResonanceMin) + kHangingValleyResonanceMin;
       break;
     case kHangingValleyParamValleySize:
-      valleySize = scaleParameterRangeToFrequency(newValue, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+      valleySize = scaleParameterRangeToFrequency(newValue, kHangingValleyValleySizeMax, kHangingValleyValleySizeMin);
       break;
     default:
       break;
