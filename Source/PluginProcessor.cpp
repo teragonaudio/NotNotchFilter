@@ -156,36 +156,40 @@ void HangingValleyAudioProcessor::releaseResources() {
 }
 
 void HangingValleyAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) {
-  // This is the place where you'd normally do the guts of your plugin's
-  // audio processing...
-  for(int channel = 0; channel < getNumInputChannels(); ++channel) {
-    float *channelData = buffer.getSampleData(channel);
-    for(int i = 0; i < buffer.getNumSamples(); i++) {
-      hiLastInput3[channel] = hiLastInput2[channel];
-      hiLastInput2[channel] = hiLastInput1[channel];
-      hiLastInput1[channel] = channelData[i];
+  // Pass audio through if valley size is set to min. We want to have a clean signal when the filter is off.
+  if(valleySize > kHangingValleyValleySizeMin) {
+    for(int channel = 0; channel < getNumInputChannels(); ++channel) {
+      float *channelData = buffer.getSampleData(channel);
+      float hiOutput, loOutput;
+      for(int i = 0; i < buffer.getNumSamples(); i++) {
+        hiLastInput3[channel] = hiLastInput2[channel];
+        hiLastInput2[channel] = hiLastInput1[channel];
+        hiLastInput1[channel] = channelData[i];
 
-      channelData[i] = (hiCoeffA1 * hiLastInput1[channel]) +
-        (hiCoeffA2 * hiLastInput2[channel]) +
-        (hiCoeffA1 * hiLastInput3[channel]) -
-        (hiCoeffB1 * hiLastOutput1[channel]) -
-        (hiCoeffB2 * hiLastOutput2[channel]);
+        hiOutput = (hiCoeffA1 * hiLastInput1[channel]) +
+          (hiCoeffA2 * hiLastInput2[channel]) +
+          (hiCoeffA1 * hiLastInput3[channel]) -
+          (hiCoeffB1 * hiLastOutput1[channel]) -
+          (hiCoeffB2 * hiLastOutput2[channel]);
 
-      hiLastOutput2[channel] = hiLastOutput1[channel];
-      hiLastOutput1[channel] = channelData[i];
+        hiLastOutput2[channel] = hiLastOutput1[channel];
+        hiLastOutput1[channel] = hiOutput;
 
-      loLastInput3[channel] = loLastInput2[channel];
-      loLastInput2[channel] = loLastInput1[channel];
-      loLastInput1[channel] = channelData[i];
+        loLastInput3[channel] = loLastInput2[channel];
+        loLastInput2[channel] = loLastInput1[channel];
+        loLastInput1[channel] = channelData[i];
 
-      channelData[i] += (loCoeffA1 * loLastInput1[channel]) +
-        (loCoeffA2 * loLastInput2[channel]) +
-        (loCoeffA1 * loLastInput3[channel]) -
-        (loCoeffB1 * loLastOutput1[channel]) -
-        (loCoeffB2 * loLastOutput2[channel]);
+        loOutput = (loCoeffA1 * loLastInput1[channel]) +
+          (loCoeffA2 * loLastInput2[channel]) +
+          (loCoeffA1 * loLastInput3[channel]) -
+          (loCoeffB1 * loLastOutput1[channel]) -
+          (loCoeffB2 * loLastOutput2[channel]);
 
-      loLastOutput2[channel] = loLastOutput1[channel];
-      loLastOutput1[channel] = channelData[i];
+        loLastOutput2[channel] = loLastOutput1[channel];
+        loLastOutput1[channel] = loOutput;
+
+        channelData[i] = hiOutput + loOutput;
+      }
     }
   }
 
