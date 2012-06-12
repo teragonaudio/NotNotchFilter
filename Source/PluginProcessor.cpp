@@ -2,6 +2,10 @@
 
 //==============================================================================
 HangingValleyAudioProcessor::HangingValleyAudioProcessor() {
+  baseFrequency = kHangingValleyFrequencyDefault;
+  resonance = kHangingValleyResonanceDefault;
+  valleySize = kHangingValleyValleySizeDefault;
+  recalculateCoefficients(getSampleRate(), baseFrequency, resonance);
 }
 
 HangingValleyAudioProcessor::~HangingValleyAudioProcessor() {

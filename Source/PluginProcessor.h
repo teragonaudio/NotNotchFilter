@@ -12,9 +12,13 @@ typedef enum {
 
 static const float kHangingValleyFrequencyMin = 20.0f;
 static const float kHangingValleyFrequencyMax = 20000.0f;
+static const float kHangingValleyFrequencyDefault = 10000.0f;
 static const float kHangingValleyResonanceMin = 0.1f;
 static const float kHangingValleyResonanceDefault = 1.0f;
 static const float kHangingValleyResonanceMax = sqrtf(2.0);
+static const float kHangingValleyValleySizeMin = 0.1f;
+static const float kHangingValleyValleySizeMax = 20000.0f;
+static const float kHangingValleyValleySizeDefault = 0.0f;
 
 #define PARAM_TEXT_NUM_DECIMAL_PLACES 2
 
