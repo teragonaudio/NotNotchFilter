@@ -115,6 +115,7 @@ void HangingValleyAudioProcessor::resetLastIOData() {
     hiLastInput3[i] = 0.0f;
     hiLastOutput1[i] = 0.0f;
     hiLastOutput2[i] = 0.0f;
+
     loLastInput1[i] = 0.0f;
     loLastInput2[i] = 0.0f;
     loLastInput3[i] = 0.0f;
