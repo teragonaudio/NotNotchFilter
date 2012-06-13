@@ -3,17 +3,17 @@
 
 
 //==============================================================================
-HangingValleyAudioProcessorEditor::HangingValleyAudioProcessorEditor(HangingValleyAudioProcessor *ownerFilter)
+NotNotchFilterAudioProcessorEditor::NotNotchFilterAudioProcessorEditor(NotNotchFilterAudioProcessor *ownerFilter)
 : AudioProcessorEditor (ownerFilter) {
   // This is where our plugin's editor size is set.
   setSize(400, 300);
 }
 
-HangingValleyAudioProcessorEditor::~HangingValleyAudioProcessorEditor() {
+NotNotchFilterAudioProcessorEditor::~NotNotchFilterAudioProcessorEditor() {
 }
 
 //==============================================================================
-void HangingValleyAudioProcessorEditor::paint(Graphics& g) {
+void NotNotchFilterAudioProcessorEditor::paint(Graphics& g) {
   g.fillAll(Colours::white);
   g.setColour(Colours::black);
   g.setFont(15.0f);

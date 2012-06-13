@@ -4,32 +4,32 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 typedef enum {
-  kHangingValleyParamFilterFrequency,
-  kHangingValleyParamResonance,
-  kHangingValleyParamValleySize,
-  kHangingValleyParamNumParams
-} kHangingValleyParams;
+  kNotNotchFilterParamFilterFrequency,
+  kNotNotchFilterParamResonance,
+  kNotNotchFilterParamValleySize,
+  kNotNotchFilterParamNumParams
+} kNotNotchFilterParams;
 
-static const float kHangingValleyFrequencyMin = 20.0f;
-static const float kHangingValleyFrequencyMax = 20000.0f;
-static const float kHangingValleyFrequencyDefault = 10000.0f;
-static const float kHangingValleyResonanceMin = 0.1f;
-static const float kHangingValleyResonanceDefault = 1.0f;
-static const float kHangingValleyResonanceMax = sqrtf(2.0);
-static const float kHangingValleyValleySizeMin = 0.1f;
-static const float kHangingValleyValleySizeMax = 20000.0f;
-static const float kHangingValleyValleySizeDefault = 0.0f;
+static const float kNotNotchFilterFrequencyMin = 20.0f;
+static const float kNotNotchFilterFrequencyMax = 20000.0f;
+static const float kNotNotchFilterFrequencyDefault = 10000.0f;
+static const float kNotNotchFilterResonanceMin = 0.1f;
+static const float kNotNotchFilterResonanceDefault = 1.0f;
+static const float kNotNotchFilterResonanceMax = sqrtf(2.0);
+static const float kNotNotchFilterValleySizeMin = 0.1f;
+static const float kNotNotchFilterValleySizeMax = 20000.0f;
+static const float kNotNotchFilterValleySizeDefault = 0.0f;
 
 #define PARAM_TEXT_NUM_DECIMAL_PLACES 2
 
 //==============================================================================
-class HangingValleyAudioProcessor  : public AudioProcessor {
+class NotNotchFilterAudioProcessor  : public AudioProcessor {
 public:
 
   //==============================================================================
-  HangingValleyAudioProcessor();
+  NotNotchFilterAudioProcessor();
 
-  ~HangingValleyAudioProcessor();
+  ~NotNotchFilterAudioProcessor();
 
   //==============================================================================
   void prepareToPlay(double sampleRate, int samplesPerBlock);
@@ -107,7 +107,7 @@ private:
   float hiCoeffB1, hiCoeffB2;
 
   //==============================================================================
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HangingValleyAudioProcessor);
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NotNotchFilterAudioProcessor);
 };
 
 #endif  // __PLUGINPROCESSOR_H_A4C75B3B__

@@ -8,12 +8,12 @@
 //==============================================================================
 /**
 */
-class HangingValleyAudioProcessorEditor  : public AudioProcessorEditor {
+class NotNotchFilterAudioProcessorEditor  : public AudioProcessorEditor {
 public:
 
-  HangingValleyAudioProcessorEditor(HangingValleyAudioProcessor *ownerFilter);
+  NotNotchFilterAudioProcessorEditor(NotNotchFilterAudioProcessor *ownerFilter);
 
-  ~HangingValleyAudioProcessorEditor();
+  ~NotNotchFilterAudioProcessorEditor();
 
   //==============================================================================
   // This is just a standard Juce paint method...

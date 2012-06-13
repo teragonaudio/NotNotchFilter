@@ -1,37 +1,37 @@
 #include "PluginProcessor.h"
 
 //==============================================================================
-HangingValleyAudioProcessor::HangingValleyAudioProcessor() {
-  baseFrequency = kHangingValleyFrequencyDefault;
-  resonance = kHangingValleyResonanceDefault;
-  valleySize = kHangingValleyValleySizeDefault;
+NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() {
+  baseFrequency = kNotNotchFilterFrequencyDefault;
+  resonance = kNotNotchFilterResonanceDefault;
+  valleySize = kNotNotchFilterValleySizeDefault;
   recalculateCoefficients(getSampleRate(), baseFrequency, resonance);
 }
 
-HangingValleyAudioProcessor::~HangingValleyAudioProcessor() {
+NotNotchFilterAudioProcessor::~NotNotchFilterAudioProcessor() {
 }
 
 //==============================================================================
-const String HangingValleyAudioProcessor::getName() const {
+const String NotNotchFilterAudioProcessor::getName() const {
   return JucePlugin_Name;
 }
 
-int HangingValleyAudioProcessor::getNumParameters() {
-  return kHangingValleyParamNumParams;
+int NotNotchFilterAudioProcessor::getNumParameters() {
+  return kNotNotchFilterParamNumParams;
 }
 
 static float scaleFrequencyToParameterRange(float value, float max, float min) {
   return (logf(value) - logf(min)) / (logf(max) - logf(min));
 }
 
-float HangingValleyAudioProcessor::getParameter(int index) {
+float NotNotchFilterAudioProcessor::getParameter(int index) {
   switch(index) {
-    case kHangingValleyParamFilterFrequency:
-      return scaleFrequencyToParameterRange(baseFrequency, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
-    case kHangingValleyParamResonance:
-      return (resonance - kHangingValleyResonanceMin) / (kHangingValleyResonanceMax - kHangingValleyResonanceMin);
-    case kHangingValleyParamValleySize:
-      return scaleFrequencyToParameterRange(valleySize, kHangingValleyValleySizeMax, kHangingValleyValleySizeMin);
+    case kNotNotchFilterParamFilterFrequency:
+      return scaleFrequencyToParameterRange(baseFrequency, kNotNotchFilterFrequencyMax, kNotNotchFilterFrequencyMin);
+    case kNotNotchFilterParamResonance:
+      return (resonance - kNotNotchFilterResonanceMin) / (kNotNotchFilterResonanceMax - kNotNotchFilterResonanceMin);
+    case kNotNotchFilterParamValleySize:
+      return scaleFrequencyToParameterRange(valleySize, kNotNotchFilterValleySizeMax, kNotNotchFilterValleySizeMin);
     default:
       return 0.0f;
   }
@@ -50,16 +50,16 @@ static float scaleParameterRangeToFrequency(float value, float max, float min) {
   }
 }
 
-void HangingValleyAudioProcessor::setParameter(int index, float newValue) {
+void NotNotchFilterAudioProcessor::setParameter(int index, float newValue) {
   switch(index) {
-    case kHangingValleyParamFilterFrequency:
-      baseFrequency = scaleParameterRangeToFrequency(newValue, kHangingValleyFrequencyMax, kHangingValleyFrequencyMin);
+    case kNotNotchFilterParamFilterFrequency:
+      baseFrequency = scaleParameterRangeToFrequency(newValue, kNotNotchFilterFrequencyMax, kNotNotchFilterFrequencyMin);
       break;
-    case kHangingValleyParamResonance:
-      resonance = newValue * (kHangingValleyResonanceMax - kHangingValleyResonanceMin) + kHangingValleyResonanceMin;
+    case kNotNotchFilterParamResonance:
+      resonance = newValue * (kNotNotchFilterResonanceMax - kNotNotchFilterResonanceMin) + kNotNotchFilterResonanceMin;
       break;
-    case kHangingValleyParamValleySize:
-      valleySize = scaleParameterRangeToFrequency(newValue, kHangingValleyValleySizeMax, kHangingValleyValleySizeMin);
+    case kNotNotchFilterParamValleySize:
+      valleySize = scaleParameterRangeToFrequency(newValue, kNotNotchFilterValleySizeMax, kNotNotchFilterValleySizeMin);
       break;
     default:
       break;
@@ -68,13 +68,13 @@ void HangingValleyAudioProcessor::setParameter(int index, float newValue) {
   recalculateCoefficients(getSampleRate(), baseFrequency, resonance);
 }
 
-const String HangingValleyAudioProcessor::getParameterName(int index) {
+const String NotNotchFilterAudioProcessor::getParameterName(int index) {
   switch(index) {
-    case kHangingValleyParamFilterFrequency:
+    case kNotNotchFilterParamFilterFrequency:
       return String("Frequency");
-    case kHangingValleyParamResonance:
+    case kNotNotchFilterParamResonance:
       return String("Resonance");
-    case kHangingValleyParamValleySize:
+    case kNotNotchFilterParamValleySize:
       return String("Valley Size");
     default:
       return String::empty;
@@ -94,13 +94,13 @@ static const String getParameterTextForFrequency(const float frequency) {
   return outText;
 }
 
-const String HangingValleyAudioProcessor::getParameterText(int index) {
+const String NotNotchFilterAudioProcessor::getParameterText(int index) {
   switch(index) {
-    case kHangingValleyParamFilterFrequency:
+    case kNotNotchFilterParamFilterFrequency:
       return getParameterTextForFrequency(baseFrequency);
-    case kHangingValleyParamResonance:
+    case kNotNotchFilterParamResonance:
       return String(resonance, PARAM_TEXT_NUM_DECIMAL_PLACES);
-    case kHangingValleyParamValleySize:
+    case kNotNotchFilterParamValleySize:
       return getParameterTextForFrequency(valleySize);
     default:
       return String::empty;
@@ -108,7 +108,7 @@ const String HangingValleyAudioProcessor::getParameterText(int index) {
 }
 
 //==============================================================================
-void HangingValleyAudioProcessor::resetLastIOData() {
+void NotNotchFilterAudioProcessor::resetLastIOData() {
   for(int i = 0; i < 2; i++) {
     hiLastInput1[i] = 0.0f;
     hiLastInput2[i] = 0.0f;
@@ -124,10 +124,10 @@ void HangingValleyAudioProcessor::resetLastIOData() {
   }
 }
 
-void HangingValleyAudioProcessor::recalculateCoefficients(const double sampleRate, const float baseFrequency, const float filterResonance) {
+void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRate, const float baseFrequency, const float filterResonance) {
   loFrequency = baseFrequency + valleySize;
-  if(loFrequency > kHangingValleyFrequencyMax) {
-    loFrequency = kHangingValleyFrequencyMax;
+  if(loFrequency > kNotNotchFilterFrequencyMax) {
+    loFrequency = kNotNotchFilterFrequencyMax;
   }
 
   const float hiCoeffConstant = (float)tan(M_PI * loFrequency / sampleRate);
@@ -145,19 +145,19 @@ void HangingValleyAudioProcessor::recalculateCoefficients(const double sampleRat
   loCoeffB2 = loCoeffA1 * (1.0f - (filterResonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
 }
 
-void HangingValleyAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
   resetLastIOData();
   recalculateCoefficients(sampleRate, baseFrequency, resonance);
 }
 
-void HangingValleyAudioProcessor::releaseResources() {
+void NotNotchFilterAudioProcessor::releaseResources() {
   // When playback stops, you can use this as an opportunity to free up any
   // spare memory, etc.
 }
 
-void HangingValleyAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) {
+void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) {
   // Pass audio through if valley size is set to min. We want to have a clean signal when the filter is off.
-  if(valleySize > kHangingValleyValleySizeMin) {
+  if(valleySize > kNotNotchFilterValleySizeMin) {
     for(int channel = 0; channel < getNumInputChannels(); ++channel) {
       float *channelData = buffer.getSampleData(channel);
       float hiOutput, loOutput;
@@ -202,13 +202,13 @@ void HangingValleyAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBu
 }
 
 //==============================================================================
-void HangingValleyAudioProcessor::getStateInformation(MemoryBlock& destData) {
+void NotNotchFilterAudioProcessor::getStateInformation(MemoryBlock& destData) {
   // You should use this method to store your parameters in the memory block.
   // You could do that either as raw data, or use the XML or ValueTree classes
   // as intermediaries to make it easy to save and load complex data.
 }
 
-void HangingValleyAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
+void NotNotchFilterAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
   // You should use this method to restore your parameters from this memory block,
   // whose contents will have been created by the getStateInformation() call.
 }
@@ -216,5 +216,5 @@ void HangingValleyAudioProcessor::setStateInformation(const void *data, int size
 //==============================================================================
 // This creates new instances of the plugin..
 AudioProcessor *JUCE_CALLTYPE createPluginFilter() {
-  return new HangingValleyAudioProcessor();
+  return new NotNotchFilterAudioProcessor();
 }
