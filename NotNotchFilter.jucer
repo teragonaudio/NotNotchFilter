@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="RjPC09" name="HangingValley" projectType="audioplug" version="1.0.0"
-              buildVST="1" buildAU="1" pluginName="HangingValley" pluginDesc="HangingValley"
+<JUCERPROJECT id="RjPC09" name="NotNotchFilter" projectType="audioplug" version="1.0.0"
+              buildVST="1" buildAU="1" pluginName="NotNotchFilter" pluginDesc="NotNotchFilter"
               pluginManufacturer="Teragon Audio" pluginManufacturerCode="Tera"
               pluginCode="HaVa" pluginChannelConfigs="{1, 1}, {2, 2}" pluginIsSynth="0"
               pluginWantsMidiIn="0" pluginProducesMidiOut="0" pluginSilenceInIsSilenceOut="1"
-              pluginTailLength="0" pluginEditorRequiresKeys="0" pluginAUExportPrefix="HangingValleyAU"
-              pluginAUViewClass="HangingValleyAU_V1" pluginRTASCategory=""
-              bundleIdentifier="com.teragonaudio.HangingValley" aaxIdentifier="com.yourcompany.HangingValley"
+              pluginTailLength="0" pluginEditorRequiresKeys="0" pluginAUExportPrefix="NotNotchFilterAU"
+              pluginAUViewClass="NotNotchFilterAU_V1" pluginRTASCategory=""
+              bundleIdentifier="com.teragonaudio.NotNotchFilter" aaxIdentifier="com.teragonaudio.NotNotchFilter"
               jucerVersion="3.0.0">
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" juceFolder="../../sdk/juce/modules"
-               vstFolder="~/SDKs/vstsdk2.4">
+               vstFolder="~/SDKs/vstsdk2.4" objCExtraSuffix="TTpist">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="HangingValley"
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="NotNotchFilter"
                        osxSDK="default" osxCompatibility="default" osxArchitecture="default"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="2" targetName="HangingValley"
+        <CONFIGURATION name="Release" isDebug="0" optimisation="2" targetName="NotNotchFilter"
                        osxSDK="default" osxCompatibility="default" osxArchitecture="default"/>
       </CONFIGURATIONS>
     </XCODE_MAC>
@@ -23,22 +23,22 @@
             vstFolder="c:\SDKs\vstsdk2.4">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="1" optimisation="1" targetName="HangingValley"/>
+                       isDebug="1" optimisation="1" targetName="NotNotchFilter"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="0" optimisation="2" targetName="HangingValley"/>
+                       isDebug="0" optimisation="2" targetName="NotNotchFilter"/>
       </CONFIGURATIONS>
     </VS2010>
     <LINUX_MAKE targetFolder="Builds/Linux" juceFolder="../../sdk/juce/modules"
                 vstFolder="~/SDKs/vstsdk2.4">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
-                       targetName="HangingValley"/>
+                       targetName="NotNotchFilter"/>
         <CONFIGURATION name="Release" libraryPath="/usr/X11R6/lib/" isDebug="0" optimisation="2"
-                       targetName="HangingValley"/>
+                       targetName="NotNotchFilter"/>
       </CONFIGURATIONS>
     </LINUX_MAKE>
   </EXPORTFORMATS>
-  <MAINGROUP id="Fyqdnh" name="HangingValley">
+  <MAINGROUP id="Fyqdnh" name="NotNotchFilter">
     <GROUP id="{B522E367-7924-268E-2867-794D2485D3B5}" name="Source">
       <FILE id="TXC19l" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

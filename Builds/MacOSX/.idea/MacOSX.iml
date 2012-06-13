@@ -2239,9 +2239,6 @@
     <content url="file://$MODULE_DIR$/../../Source/PluginProcessor.h">
       <sourceFolder url="file://$MODULE_DIR$/../../Source/PluginProcessor.h" isTestSource="false" />
     </content>
-    <content url="file://$USER_HOME$/Library/Caches/appCode10/DerivedData/HangingValley-f4da3339/Build/Products/Debug/HangingValley.component">
-      <sourceFolder url="file://$USER_HOME$/Library/Caches/appCode10/DerivedData/HangingValley-f4da3339/Build/Products/Debug/HangingValley.component" isTestSource="false" />
-    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

@@ -3,9 +3,8 @@
     IMPORTANT! This file is auto-generated each time you save your
     project - if you alter its contents, your changes may be overwritten!
 
-    There's a section below where you can add your own custom code safely, and the
-    Introjucer will preserve the contents of that block, but the best way to change
-    any of these definitions is by using the Introjucer's project settings.
+    If you want to change any of these values, use the Introjucer to do so,
+    rather than editing this file directly!
 
     Any commented-out settings will assume their default values.
 
@@ -13,13 +12,6 @@
 
 #ifndef __JUCE_APPCONFIG_RJPC09__
 #define __JUCE_APPCONFIG_RJPC09__
-
-//==============================================================================
-// [BEGIN_USER_CODE_SECTION]
-
-// (You can add your own code in this section, and the Introjucer will not overwrite it)
-
-// [END_USER_CODE_SECTION]
 
 //==============================================================================
 #define JUCE_MODULE_AVAILABLE_juce_audio_basics             1
@@ -112,14 +104,11 @@
 #ifndef  JucePlugin_Build_RTAS
  #define JucePlugin_Build_RTAS             0
 #endif
-#ifndef  JucePlugin_Build_AAX
- #define JucePlugin_Build_AAX              0
-#endif
 #ifndef  JucePlugin_Name
- #define JucePlugin_Name                   "HangingValley"
+ #define JucePlugin_Name                   "NotNotchFilter"
 #endif
 #ifndef  JucePlugin_Desc
- #define JucePlugin_Desc                   "HangingValley"
+ #define JucePlugin_Desc                   "NotNotchFilter"
 #endif
 #ifndef  JucePlugin_Manufacturer
  #define JucePlugin_Manufacturer           "Teragon Audio"
@@ -176,19 +165,19 @@
  #define JucePlugin_AUSubType              JucePlugin_PluginCode
 #endif
 #ifndef  JucePlugin_AUExportPrefix
- #define JucePlugin_AUExportPrefix         HangingValleyAU
+ #define JucePlugin_AUExportPrefix         NotNotchFilterAU
 #endif
 #ifndef  JucePlugin_AUExportPrefixQuoted
- #define JucePlugin_AUExportPrefixQuoted   "HangingValleyAU"
+ #define JucePlugin_AUExportPrefixQuoted   "NotNotchFilterAU"
 #endif
 #ifndef  JucePlugin_AUManufacturerCode
  #define JucePlugin_AUManufacturerCode     JucePlugin_ManufacturerCode
 #endif
 #ifndef  JucePlugin_CFBundleIdentifier
- #define JucePlugin_CFBundleIdentifier     com.teragonaudio.HangingValley
+ #define JucePlugin_CFBundleIdentifier     com.teragonaudio.NotNotchFilter
 #endif
 #ifndef  JucePlugin_AUCocoaViewClassName
- #define JucePlugin_AUCocoaViewClassName   HangingValleyAU_V1
+ #define JucePlugin_AUCocoaViewClassName   NotNotchFilterAU_V1
 #endif
 #ifndef  JucePlugin_RTASCategory
  #define JucePlugin_RTASCategory           ePlugInCategory_None
@@ -198,21 +187,6 @@
 #endif
 #ifndef  JucePlugin_RTASProductId
  #define JucePlugin_RTASProductId          JucePlugin_PluginCode
-#endif
-#ifndef  JucePlugin_AAXIdentifier
- #define JucePlugin_AAXIdentifier          com.yourcompany.HangingValley
-#endif
-#ifndef  JucePlugin_AAXManufacturerCode
- #define JucePlugin_AAXManufacturerCode    JucePlugin_ManufacturerCode
-#endif
-#ifndef  JucePlugin_AAXProductId
- #define JucePlugin_AAXProductId           JucePlugin_PluginCode
-#endif
-#ifndef  JucePlugin_AAXPluginId
- #define JucePlugin_AAXPluginId            JucePlugin_PluginCode
-#endif
-#ifndef  JucePlugin_AAXCategory
- #define JucePlugin_AAXCategory            AAX_ePlugInCategory_None
 #endif
 
 #endif  // __JUCE_APPCONFIG_RJPC09__

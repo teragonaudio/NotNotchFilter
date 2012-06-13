@@ -8,9 +8,9 @@
     <key>CFBundleIconFile</key>
     <string></string>
     <key>CFBundleIdentifier</key>
-    <string>com.teragonaudio.HangingValley</string>
+    <string>com.teragonaudio.NotNotchFilter</string>
     <key>CFBundleName</key>
-    <string>HangingValley</string>
+    <string>NotNotchFilter</string>
     <key>CFBundlePackageType</key>
     <string>TDMw</string>
     <key>CFBundleSignature</key>

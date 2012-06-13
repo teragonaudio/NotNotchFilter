@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{4070F3D6-33A9-39D8-5271-5E14FC59E5D1}") = "HangingValley", "HangingValley.vcxproj", "{C8A4FCAB-06CD-18E2-4A40-D9868DEBDB9D}"
+Project("{0D53CA85-405E-3858-26AB-3644DD5F53C3}") = "NotNotchFilter", "NotNotchFilter.vcxproj", "{C8A4FCAB-06CD-18E2-4A40-D9868DEBDB9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
