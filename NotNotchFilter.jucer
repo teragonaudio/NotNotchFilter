@@ -11,7 +11,7 @@
               jucerVersion="3.0.0">
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" juceFolder="../../sdk/juce/modules"
-               vstFolder="~/SDKs/vstsdk2.4" objCExtraSuffix="TTpist">
+               vstFolder="Third-Party/vstsdk2.4" objCExtraSuffix="TTpist">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="NotNotchFilter"
                        osxSDK="default" osxCompatibility="default" osxArchitecture="default"/>
@@ -20,7 +20,7 @@
       </CONFIGURATIONS>
     </XCODE_MAC>
     <VS2010 targetFolder="Builds/VisualStudio2010" libraryType="1" juceFolder="../../sdk/juce/modules"
-            vstFolder="c:\SDKs\vstsdk2.4">
+            vstFolder="Third-Party/vstsdk2.4">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
                        isDebug="1" optimisation="1" targetName="NotNotchFilter"/>
@@ -29,7 +29,7 @@
       </CONFIGURATIONS>
     </VS2010>
     <LINUX_MAKE targetFolder="Builds/Linux" juceFolder="../../sdk/juce/modules"
-                vstFolder="~/SDKs/vstsdk2.4">
+                vstFolder="Third-Party/vstsdk2.4">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
                        targetName="NotNotchFilter"/>
