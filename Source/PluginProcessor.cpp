@@ -125,7 +125,7 @@ void NotNotchFilterAudioProcessor::resetLastIOData() {
 }
 
 void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRate, const float baseFrequency, const float filterResonance) {
-  loFrequency = baseFrequency + valleySize;
+  loFrequency = baseFrequency + (valleySize / 2.0f);
   if(loFrequency > kNotNotchFilterFrequencyMax) {
     loFrequency = kNotNotchFilterFrequencyMax;
   }
@@ -136,7 +136,10 @@ void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRa
   hiCoeffB1 = 2.0f * hiCoeffA1 * ((hiCoeffConstant * hiCoeffConstant) - 1.0f);
   hiCoeffB2 = hiCoeffA1 * (1.0f - (filterResonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
 
-  hiFrequency = baseFrequency;
+  hiFrequency = baseFrequency - (valleySize / 2.0f);
+  if(hiFrequency < kNotNotchFilterFrequencyMin) {
+    hiFrequency = kNotNotchFilterFrequencyMin;
+  }
 
   const float loCoeffConstant = (float)(1.0f / tan(hiFrequency / sampleRate));
   loCoeffA1 = 1.0f / (1.0f + (filterResonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
