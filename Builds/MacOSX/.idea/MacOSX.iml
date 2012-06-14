@@ -2239,6 +2239,9 @@
     <content url="file://$MODULE_DIR$/../../Source/PluginProcessor.h">
       <sourceFolder url="file://$MODULE_DIR$/../../Source/PluginProcessor.h" isTestSource="false" />
     </content>
+    <content url="file://$USER_HOME$/Library/Caches/appCode10/DerivedData/NotNotchFilter-50e90ff3/Build/Products/Debug/NotNotchFilter.component">
+      <sourceFolder url="file://$USER_HOME$/Library/Caches/appCode10/DerivedData/NotNotchFilter-50e90ff3/Build/Products/Debug/NotNotchFilter.component" isTestSource="false" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
