@@ -18,7 +18,7 @@ static const float kNotNotchFilterResonanceDefault = 1.0f;
 static const float kNotNotchFilterResonanceMax = sqrtf(2.0);
 static const float kNotNotchFilterValleySizeMin = 0.1f;
 static const float kNotNotchFilterValleySizeMax = 20000.0f;
-static const float kNotNotchFilterValleySizeDefault = 0.0f;
+static const float kNotNotchFilterValleySizeDefault = 0.1f;
 
 #define PARAM_TEXT_NUM_DECIMAL_PLACES 2
 
