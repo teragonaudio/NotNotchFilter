@@ -10,14 +10,14 @@ typedef enum {
   kNotNotchFilterParamNumParams
 } kNotNotchFilterParams;
 
-static const float kNotNotchFilterFrequencyMin = 20.0f;
+static const float kNotNotchFilterFrequencyMin = 800.0f;
 static const float kNotNotchFilterFrequencyMax = 20000.0f;
 static const float kNotNotchFilterFrequencyDefault = 10000.0f;
 static const float kNotNotchFilterResonanceMin = 0.1f;
 static const float kNotNotchFilterResonanceDefault = 1.0f;
 static const float kNotNotchFilterResonanceMax = sqrtf(2.0);
 static const float kNotNotchFilterValleySizeMin = 0.1f;
-static const float kNotNotchFilterValleySizeMax = 20000.0f;
+static const float kNotNotchFilterValleySizeMax = 10000.0f;
 static const float kNotNotchFilterValleySizeDefault = 0.1f;
 
 #define PARAM_TEXT_NUM_DECIMAL_PLACES 2
