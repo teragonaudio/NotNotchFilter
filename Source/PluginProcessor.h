@@ -48,6 +48,8 @@ public:
 
   int getNumParameters();
 
+  float getMaxFilterFrequency() const;
+
   float getParameter(int index);
 
   void setParameter(int index, float newValue);

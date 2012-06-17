@@ -24,6 +24,10 @@ static float scaleFrequencyToParameterRange(float value, float max, float min) {
   return (logf(value) - logf(min)) / (logf(max) - logf(min));
 }
 
+float NotNotchFilterAudioProcessor::getMaxFilterFrequency() const {
+  return (float)(getSampleRate() / 2.0f) - 10.0f;
+}
+
 float NotNotchFilterAudioProcessor::getParameter(int index) {
   switch(index) {
     case kNotNotchFilterParamFilterFrequency:
@@ -126,8 +130,8 @@ void NotNotchFilterAudioProcessor::resetLastIOData() {
 
 void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRate, const float baseFrequency, const float filterResonance) {
   loFrequency = baseFrequency + valleySize;
-  if(loFrequency > kNotNotchFilterFrequencyMax) {
-    loFrequency = kNotNotchFilterFrequencyMax;
+  if(loFrequency > getMaxFilterFrequency()) {
+    loFrequency = getMaxFilterFrequency();
   }
 
   const float hiCoeffConstant = (float)tan(M_PI * loFrequency / sampleRate);
