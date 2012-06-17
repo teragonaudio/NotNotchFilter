@@ -140,7 +140,7 @@ void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRa
   hiCoeffB1 = 2.0f * hiCoeffA1 * ((hiCoeffConstant * hiCoeffConstant) - 1.0f);
   hiCoeffB2 = hiCoeffA1 * (1.0f - (filterResonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
 
-  hiFrequency = baseFrequency - valleySize;
+  hiFrequency = baseFrequency;// - valleySize;
   // Don't compare to the minimum notch frequency; instead we want to catch anything below 20Hz
   // as it could cause feedback in the filter or other artifacts.
   if(hiFrequency < 20) {
