@@ -1,5 +1,10 @@
 #include "PluginProcessor.h"
 
+#if WIN32
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
+
 //==============================================================================
 NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() {
   baseFrequency = kNotNotchFilterFrequencyDefault;
