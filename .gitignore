@@ -1,2 +1,12 @@
+.DS_Store
+xcuserdata
+*.orig
 Builds/MacOSX/.idea/workspace.xml
 Builds/MacOSX/build
+Builds/VisualStudio2010/Debug/*
+Builds/VisualStudio2010/Release/*
+Builds/VisualStudio2010/ipch/*
+Builds/VisualStudio2010/*.user
+Builds/VisualStudio2010/*.sdf
+Builds/VisualStudio2010/*.opensdf
+Third-Party/vstsdk2.4/*
