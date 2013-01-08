@@ -90,6 +90,19 @@ const String NotNotchFilterAudioProcessor::getParameterName(int index) {
   }
 }
 
+const String NotNotchFilterAudioProcessor::getParameterNameForStorage(int index) {
+  switch(index) {
+    case kNotNotchFilterParamFilterFrequency:
+      return String("Frequency");
+    case kNotNotchFilterParamResonance:
+      return String("Resonance");
+    case kNotNotchFilterParamValleySize:
+      return String("ValleySize");
+    default:
+      return String::empty;
+  }
+}
+
 static const String getParameterTextForFrequency(const float frequency) {
   String outText;
   if(frequency > 1000) {
@@ -220,11 +233,22 @@ void NotNotchFilterAudioProcessor::getStateInformation(MemoryBlock& destData) {
   // You should use this method to store your parameters in the memory block.
   // You could do that either as raw data, or use the XML or ValueTree classes
   // as intermediaries to make it easy to save and load complex data.
+  XmlElement xml("NotNotchFilterStorage");
+  for(int i = 0; i < kNotNotchFilterParamNumParams; i++) {
+    xml.setAttribute(getParameterNameForStorage(i), getParameter(i));
+  }
+  copyXmlToBinary(xml, destData);
 }
 
 void NotNotchFilterAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
   // You should use this method to restore your parameters from this memory block,
   // whose contents will have been created by the getStateInformation() call.
+  ScopedPointer<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+  if(xmlState != 0 && xmlState->hasTagName("NotNotchFilterStorage")) {
+    for(int i = 0; i < kNotNotchFilterParamNumParams; i++) {
+      setParameter(i, xmlState->getDoubleAttribute(getParameterNameForStorage(i)));
+    }
+  }
 }
 
 //==============================================================================
