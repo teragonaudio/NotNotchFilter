@@ -1,6 +1,7 @@
 .DS_Store
 xcuserdata
 *.orig
+Builds/Linux/build/*
 Builds/MacOSX/.idea/workspace.xml
 Builds/MacOSX/build
 Builds/VisualStudio2010/Debug/*
