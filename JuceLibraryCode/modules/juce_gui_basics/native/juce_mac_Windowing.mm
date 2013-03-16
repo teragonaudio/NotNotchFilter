@@ -29,37 +29,49 @@ void LookAndFeel::playAlertSound()
 }
 
 //==============================================================================
-class OSXMessageBox  : public AsyncUpdater
+class OSXMessageBox  : private AsyncUpdater
 {
 public:
-    OSXMessageBox (AlertWindow::AlertIconType iconType_,
-                   const String& title_, const String& message_,
-                   NSString* button1_, NSString* button2_, NSString* button3_,
-                   ModalComponentManager::Callback* callback_,
-                   const bool runAsync)
-        : iconType (iconType_), title (title_),
-          message (message_), callback (callback_),
-          button1 ([button1_ retain]),
-          button2 ([button2_ retain]),
-          button3 ([button3_ retain])
+    OSXMessageBox (AlertWindow::AlertIconType type, const String& t, const String& m,
+                   const char* b1, const char* b2, const char* b3,
+                   ModalComponentManager::Callback* c, const bool runAsync)
+        : iconType (type), title (t), message (m), callback (c),
+          button1 (b1), button2 (b2), button3 (b3)
     {
         if (runAsync)
             triggerAsyncUpdate();
     }
 
-    ~OSXMessageBox()
-    {
-        [button1 release];
-        [button2 release];
-        [button3 release];
-    }
-
     int getResult() const
     {
-        JUCE_AUTORELEASEPOOL
-        NSInteger r = getRawResult();
-        return r == NSAlertDefaultReturn ? 1 : (r == NSAlertOtherReturn ? 2 : 0);
+        switch (getRawResult())
+        {
+            case NSAlertDefaultReturn:  return 1;
+            case NSAlertOtherReturn:    return 2;
+            default:                    return 0;
+        }
     }
+
+    static int show (AlertWindow::AlertIconType iconType, const String& title, const String& message,
+                     ModalComponentManager::Callback* callback, const char* b1, const char* b2, const char* b3,
+                     bool runAsync)
+    {
+        ScopedPointer<OSXMessageBox> mb (new OSXMessageBox (iconType, title, message, b1, b2, b3,
+                                                            callback, runAsync));
+        if (! runAsync)
+            return mb->getResult();
+
+        mb.release();
+        return 0;
+    }
+
+private:
+    AlertWindow::AlertIconType iconType;
+    String title, message;
+    ModalComponentManager::Callback* callback;
+    const char* button1;
+    const char* button2;
+    const char* button3;
 
     void handleAsyncUpdate()
     {
@@ -71,24 +83,24 @@ public:
         delete this;
     }
 
-private:
-    AlertWindow::AlertIconType iconType;
-    String title, message;
-    ModalComponentManager::Callback* callback;
-    NSString* button1;
-    NSString* button2;
-    NSString* button3;
+    static NSString* translateIfNotNull (const char* s)
+    {
+        return s != nullptr ? juceStringToNS (TRANS (s)) : nil;
+    }
 
     NSInteger getRawResult() const
     {
-        NSString* messageString = juceStringToNS (message);
-        NSString* titleString = juceStringToNS (title);
+        NSString* msg = juceStringToNS (message);
+        NSString* ttl = juceStringToNS (title);
+        NSString* b1  = translateIfNotNull (button1);
+        NSString* b2  = translateIfNotNull (button2);
+        NSString* b3  = translateIfNotNull (button3);
 
         switch (iconType)
         {
-            case AlertWindow::InfoIcon:     return NSRunInformationalAlertPanel (titleString, messageString, button1, button2, button3);
-            case AlertWindow::WarningIcon:  return NSRunCriticalAlertPanel      (titleString, messageString, button1, button2, button3);
-            default:                        return NSRunAlertPanel              (titleString, messageString, button1, button2, button3);
+            case AlertWindow::InfoIcon:     return NSRunInformationalAlertPanel (ttl, msg, b1, b2, b3);
+            case AlertWindow::WarningIcon:  return NSRunCriticalAlertPanel      (ttl, msg, b1, b2, b3);
+            default:                        return NSRunAlertPanel              (ttl, msg, b1, b2, b3);
         }
     }
 };
@@ -96,50 +108,35 @@ private:
 
 void JUCE_CALLTYPE NativeMessageBox::showMessageBox (AlertWindow::AlertIconType iconType,
                                                      const String& title, const String& message,
-                                                     Component* associatedComponent)
+                                                     Component* /*associatedComponent*/)
 {
-    OSXMessageBox box (iconType, title, message, nsStringLiteral ("OK"), nil, nil, 0, false);
-    (void) box.getResult();
+    OSXMessageBox::show (iconType, title, message, nullptr, "OK", nullptr, nullptr, false);
 }
 
 void JUCE_CALLTYPE NativeMessageBox::showMessageBoxAsync (AlertWindow::AlertIconType iconType,
                                                           const String& title, const String& message,
-                                                          Component* associatedComponent)
+                                                          Component* /*associatedComponent*/,
+                                                          ModalComponentManager::Callback* callback)
 {
-    new OSXMessageBox (iconType, title, message, nsStringLiteral ("OK"), nil, nil, 0, true);
+    OSXMessageBox::show (iconType, title, message, callback, "OK", nullptr, nullptr, true);
 }
 
 bool JUCE_CALLTYPE NativeMessageBox::showOkCancelBox (AlertWindow::AlertIconType iconType,
                                                       const String& title, const String& message,
-                                                      Component* associatedComponent,
+                                                      Component* /*associatedComponent*/,
                                                       ModalComponentManager::Callback* callback)
 {
-    ScopedPointer<OSXMessageBox> mb (new OSXMessageBox (iconType, title, message,
-                                                        nsStringLiteral ("OK"),
-                                                        nsStringLiteral ("Cancel"),
-                                                        nil, callback, callback != nullptr));
-    if (callback == nullptr)
-        return mb->getResult() == 1;
-
-    mb.release();
-    return false;
+    return OSXMessageBox::show (iconType, title, message, callback,
+                                "OK", "Cancel", nullptr, callback != nullptr) == 1;
 }
 
 int JUCE_CALLTYPE NativeMessageBox::showYesNoCancelBox (AlertWindow::AlertIconType iconType,
                                                         const String& title, const String& message,
-                                                        Component* associatedComponent,
+                                                        Component* /*associatedComponent*/,
                                                         ModalComponentManager::Callback* callback)
 {
-    ScopedPointer<OSXMessageBox> mb (new OSXMessageBox (iconType, title, message,
-                                                        nsStringLiteral ("Yes"),
-                                                        nsStringLiteral ("Cancel"),
-                                                        nsStringLiteral ("No"),
-                                                        callback, callback != nullptr));
-    if (callback == nullptr)
-        return mb->getResult();
-
-    mb.release();
-    return 0;
+    return OSXMessageBox::show (iconType, title, message, callback,
+                                "Yes", "Cancel", "No", callback != nullptr);
 }
 
 
@@ -223,7 +220,7 @@ void Desktop::setMousePosition (const Point<int>& newPosition)
     // this rubbish needs to be done around the warp call, to avoid causing a
     // bizarre glitch..
     CGAssociateMouseAndMouseCursorPosition (false);
-    CGWarpMouseCursorPosition (CGPointMake (newPosition.getX(), newPosition.getY()));
+    CGWarpMouseCursorPosition (convertToCGPoint (newPosition));
     CGAssociateMouseAndMouseCursorPosition (true);
 }
 
@@ -233,24 +230,49 @@ Desktop::DisplayOrientation Desktop::getCurrentOrientation() const
 }
 
 //==============================================================================
-#ifndef __POWER__  // Some versions of the SDK omit this function..
- extern "C"  { extern OSErr UpdateSystemActivity (UInt8); }
-#endif
-
 class ScreenSaverDefeater   : public Timer
 {
 public:
     ScreenSaverDefeater()
     {
-        startTimer (10000);
+        startTimer (5000);
         timerCallback();
     }
 
     void timerCallback()
     {
         if (Process::isForegroundProcess())
-            UpdateSystemActivity (1 /*UsrActivity*/);
+        {
+            if (assertion == nullptr)
+                assertion = new PMAssertion();
+        }
+        else
+        {
+            assertion = nullptr;
+        }
     }
+
+    struct PMAssertion
+    {
+        PMAssertion()  : assertionID (kIOPMNullAssertionID)
+        {
+            IOReturn res = IOPMAssertionCreateWithName (kIOPMAssertionTypePreventUserIdleDisplaySleep,
+                                                        kIOPMAssertionLevelOn,
+                                                        CFSTR ("JUCE Playback"),
+                                                        &assertionID);
+            jassert (res == kIOReturnSuccess); (void) res;
+        }
+
+        ~PMAssertion()
+        {
+            if (assertionID != kIOPMNullAssertionID)
+                IOPMAssertionRelease (assertionID);
+        }
+
+        IOPMAssertionID assertionID;
+    };
+
+    ScopedPointer<PMAssertion> assertion;
 };
 
 static ScopedPointer<ScreenSaverDefeater> screenSaverDefeater;
@@ -269,7 +291,7 @@ bool Desktop::isScreenSaverEnabled()
 }
 
 //==============================================================================
-class DisplaySettingsChangeCallback  : public DeletedAtShutdown
+class DisplaySettingsChangeCallback  : private DeletedAtShutdown
 {
 public:
     DisplaySettingsChangeCallback()
@@ -291,7 +313,7 @@ public:
     juce_DeclareSingleton_SingleThreaded_Minimal (DisplaySettingsChangeCallback);
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DisplaySettingsChangeCallback);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DisplaySettingsChangeCallback)
 };
 
 juce_ImplementSingleton_SingleThreaded (DisplaySettingsChangeCallback);
@@ -329,6 +351,24 @@ void Desktop::Displays::findDisplays()
 
         displays.add (d);
     }
+}
+
+//==============================================================================
+bool juce_areThereAnyAlwaysOnTopWindows()
+{
+    NSArray* windows = [NSApp windows];
+
+    for (unsigned int i = 0; i < [windows count]; ++i)
+    {
+        const NSInteger level = [((NSWindow*) [windows objectAtIndex: i]) level];
+
+        if (level == NSFloatingWindowLevel
+             || level == NSStatusWindowLevel
+             || level == NSModalPanelWindowLevel)
+            return true;
+    }
+
+    return false;
 }
 
 //==============================================================================
@@ -371,4 +411,15 @@ String SystemClipboard::getTextFromClipboard()
 
     return text == nil ? String::empty
                        : nsStringToJuce (text);
+}
+
+void Process::setDockIconVisible (bool isVisible)
+{
+   #if defined (MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6)
+    [NSApp setActivationPolicy: isVisible ? NSApplicationActivationPolicyRegular
+                                          : NSApplicationActivationPolicyProhibited];
+   #else
+    (void) isVisible;
+    jassertfalse; // sorry, not available in 10.5!
+   #endif
 }

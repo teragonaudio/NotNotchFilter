@@ -8,7 +8,7 @@
               pluginTailLength="0" pluginEditorRequiresKeys="0" pluginAUExportPrefix="NotNotchFilterAU"
               pluginAUViewClass="NotNotchFilterAU_V1" pluginRTASCategory=""
               bundleIdentifier="com.teragonaudio.NotNotchFilter" aaxIdentifier="com.teragonaudio.NotNotchFilter"
-              jucerVersion="3.0.0">
+              jucerVersion="3.0.0" pluginAAXCategory="AAX_ePlugInCategory_Dynamics">
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" juceFolder="../../sdk/juce/modules"
                vstFolder="Third-Party/vstsdk2.4" objCExtraSuffix="TTpist">
@@ -29,7 +29,7 @@
       </CONFIGURATIONS>
     </VS2010>
     <LINUX_MAKE targetFolder="Builds/Linux" juceFolder="../../sdk/juce/modules"
-                vstFolder="Third-Party/vstsdk2.4">
+                vstFolder="Third-Party/vstsdk2.4" extraDefs="" extraCompilerFlags="-I../../Third-Party/PluginParameters/include">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
                        targetName="NotNotchFilter"/>

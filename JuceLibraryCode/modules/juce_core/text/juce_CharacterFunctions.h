@@ -324,15 +324,16 @@ public:
     /** Copies characters from one string to another, up to a null terminator
         or a given byte size limit. */
     template <typename DestCharPointerType, typename SrcCharPointerType>
-    static int copyWithDestByteLimit (DestCharPointerType& dest, SrcCharPointerType src, int maxBytes) noexcept
+    static size_t copyWithDestByteLimit (DestCharPointerType& dest, SrcCharPointerType src, size_t maxBytesToWrite) noexcept
     {
         typename DestCharPointerType::CharType const* const startAddress = dest.getAddress();
+        ssize_t maxBytes = (ssize_t) maxBytesToWrite;
         maxBytes -= sizeof (typename DestCharPointerType::CharType); // (allow for a terminating null)
 
         for (;;)
         {
             const juce_wchar c = src.getAndAdvance();
-            const int bytesNeeded = (int) DestCharPointerType::getBytesRequiredFor (c);
+            const size_t bytesNeeded = DestCharPointerType::getBytesRequiredFor (c);
 
             maxBytes -= bytesNeeded;
             if (c == 0 || maxBytes < 0)
@@ -343,7 +344,8 @@ public:
 
         dest.writeNull();
 
-        return (int) (getAddressDifference (dest.getAddress(), startAddress) + sizeof (typename DestCharPointerType::CharType));
+        return (size_t) getAddressDifference (dest.getAddress(), startAddress)
+                 + sizeof (typename DestCharPointerType::CharType);
     }
 
     /** Copies characters from one string to another, up to a null terminator
@@ -447,21 +449,37 @@ public:
         Returns -1 if the substring is not found.
     */
     template <typename CharPointerType1, typename CharPointerType2>
-    static int indexOf (CharPointerType1 haystack, const CharPointerType2& needle) noexcept
+    static int indexOf (CharPointerType1 textToSearch, const CharPointerType2& substringToLookFor) noexcept
     {
         int index = 0;
-        const int needleLength = (int) needle.length();
+        const int substringLength = (int) substringToLookFor.length();
 
         for (;;)
         {
-            if (haystack.compareUpTo (needle, needleLength) == 0)
+            if (textToSearch.compareUpTo (substringToLookFor, substringLength) == 0)
                 return index;
 
-            if (haystack.getAndAdvance() == 0)
+            if (textToSearch.getAndAdvance() == 0)
                 return -1;
 
             ++index;
         }
+    }
+
+    /** Returns a pointer to the first occurrence of a substring in a string.
+        If the substring is not found, this will return a pointer to the string's
+        null terminator.
+    */
+    template <typename CharPointerType1, typename CharPointerType2>
+    static CharPointerType1 find (CharPointerType1 textToSearch, const CharPointerType2& substringToLookFor) noexcept
+    {
+        const int substringLength = (int) substringToLookFor.length();
+
+        while (textToSearch.compareUpTo (substringToLookFor, substringLength) != 0
+                 && ! textToSearch.isEmpty())
+            ++textToSearch;
+
+        return textToSearch;
     }
 
     /** Finds the character index of a given substring in another string, using

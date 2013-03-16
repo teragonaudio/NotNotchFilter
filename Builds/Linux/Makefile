@@ -19,8 +19,8 @@ ifeq ($(CONFIG),Debug)
   OUTDIR := build
   CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
   CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -g -ggdb -fPIC -O0
-  CXXFLAGS += $(CFLAGS) 
-  LDFLAGS += -L$(BINDIR) -L$(LIBDIR) -shared -L/usr/X11R6/lib/ -ldl -lfreetype -lpthread -lrt -lX11 -lGL -lGLU -lXinerama -lasound -lXext 
+  CXXFLAGS += $(CFLAGS) -I../../Third-Party/PluginParameters/include
+  LDFLAGS += -L$(BINDIR) -L$(LIBDIR) -shared -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
   LDDEPS :=
   RESFLAGS :=  -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
   TARGET := NotNotchFilter.so
@@ -34,8 +34,8 @@ ifeq ($(CONFIG),Release)
   OUTDIR := build
   CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
   CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -fPIC -Os
-  CXXFLAGS += $(CFLAGS) 
-  LDFLAGS += -L$(BINDIR) -L$(LIBDIR) -shared -L/usr/X11R6/lib/ -ldl -lfreetype -lpthread -lrt -lX11 -lGL -lGLU -lXinerama -lasound -lXext 
+  CXXFLAGS += $(CFLAGS) -I../../Third-Party/PluginParameters/include
+  LDFLAGS += -L$(BINDIR) -L$(LIBDIR) -shared -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
   LDDEPS :=
   RESFLAGS :=  -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
   TARGET := NotNotchFilter.so
@@ -45,7 +45,6 @@ endif
 OBJECTS := \
   $(OBJDIR)/PluginProcessor_a059e380.o \
   $(OBJDIR)/PluginEditor_94d4fb09.o \
-  $(OBJDIR)/juce_AAX_Wrapper_6b508a5d.o \
   $(OBJDIR)/juce_audio_basics_2442e4ea.o \
   $(OBJDIR)/juce_audio_processors_44a134a2.o \
   $(OBJDIR)/juce_core_aff681cc.o \
@@ -54,10 +53,7 @@ OBJECTS := \
   $(OBJDIR)/juce_graphics_c8f1e7a4.o \
   $(OBJDIR)/juce_gui_basics_a630dd20.o \
   $(OBJDIR)/juce_gui_extra_7767d6a8.o \
-  $(OBJDIR)/juce_RTAS_DigiCode1_fd8f0f15.o \
-  $(OBJDIR)/juce_RTAS_DigiCode2_fd9d2696.o \
-  $(OBJDIR)/juce_RTAS_DigiCode3_fdab3e17.o \
-  $(OBJDIR)/juce_RTAS_Wrapper_6747216b.o \
+  $(OBJDIR)/juce_PluginUtilities_e2e19a34.o \
   $(OBJDIR)/juce_VST_Wrapper_bb62e93d.o \
 
 .PHONY: clean
@@ -75,6 +71,10 @@ clean:
 	-@rm -rf $(OBJDIR)/*
 	-@rm -rf $(OBJDIR)
 
+strip:
+	@echo Stripping NotNotchFilter
+	-@strip --strip-unneeded $(OUTDIR)/$(TARGET)
+
 $(OBJDIR)/PluginProcessor_a059e380.o: ../../Source/PluginProcessor.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling PluginProcessor.cpp"
@@ -83,11 +83,6 @@ $(OBJDIR)/PluginProcessor_a059e380.o: ../../Source/PluginProcessor.cpp
 $(OBJDIR)/PluginEditor_94d4fb09.o: ../../Source/PluginEditor.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling PluginEditor.cpp"
-	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
-
-$(OBJDIR)/juce_AAX_Wrapper_6b508a5d.o: ../../JuceLibraryCode/modules/juce_audio_plugin_client/AAX/juce_AAX_Wrapper.cpp
-	-@mkdir -p $(OBJDIR)
-	@echo "Compiling juce_AAX_Wrapper.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/juce_audio_basics_2442e4ea.o: ../../JuceLibraryCode/modules/juce_audio_basics/juce_audio_basics.cpp
@@ -130,24 +125,9 @@ $(OBJDIR)/juce_gui_extra_7767d6a8.o: ../../JuceLibraryCode/modules/juce_gui_extr
 	@echo "Compiling juce_gui_extra.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
-$(OBJDIR)/juce_RTAS_DigiCode1_fd8f0f15.o: ../../JuceLibraryCode/modules/juce_audio_plugin_client/RTAS/juce_RTAS_DigiCode1.cpp
+$(OBJDIR)/juce_PluginUtilities_e2e19a34.o: ../../JuceLibraryCode/modules/juce_audio_plugin_client/utility/juce_PluginUtilities.cpp
 	-@mkdir -p $(OBJDIR)
-	@echo "Compiling juce_RTAS_DigiCode1.cpp"
-	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
-
-$(OBJDIR)/juce_RTAS_DigiCode2_fd9d2696.o: ../../JuceLibraryCode/modules/juce_audio_plugin_client/RTAS/juce_RTAS_DigiCode2.cpp
-	-@mkdir -p $(OBJDIR)
-	@echo "Compiling juce_RTAS_DigiCode2.cpp"
-	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
-
-$(OBJDIR)/juce_RTAS_DigiCode3_fdab3e17.o: ../../JuceLibraryCode/modules/juce_audio_plugin_client/RTAS/juce_RTAS_DigiCode3.cpp
-	-@mkdir -p $(OBJDIR)
-	@echo "Compiling juce_RTAS_DigiCode3.cpp"
-	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
-
-$(OBJDIR)/juce_RTAS_Wrapper_6747216b.o: ../../JuceLibraryCode/modules/juce_audio_plugin_client/RTAS/juce_RTAS_Wrapper.cpp
-	-@mkdir -p $(OBJDIR)
-	@echo "Compiling juce_RTAS_Wrapper.cpp"
+	@echo "Compiling juce_PluginUtilities.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/juce_VST_Wrapper_bb62e93d.o: ../../JuceLibraryCode/modules/juce_audio_plugin_client/VST/juce_VST_Wrapper.cpp

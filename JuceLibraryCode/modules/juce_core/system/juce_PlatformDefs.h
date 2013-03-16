@@ -160,18 +160,18 @@ namespace juce
         etc..
 
     private:
-        JUCE_DECLARE_NON_COPYABLE (MyClass);
+        JUCE_DECLARE_NON_COPYABLE (MyClass)
     };@endcode
 */
 #define JUCE_DECLARE_NON_COPYABLE(className) \
     className (const className&);\
-    className& operator= (const className&)
+    className& operator= (const className&);
 
 /** This is a shorthand way of writing both a JUCE_DECLARE_NON_COPYABLE and
     JUCE_LEAK_DETECTOR macro for a class.
 */
 #define JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(className) \
-    JUCE_DECLARE_NON_COPYABLE(className);\
+    JUCE_DECLARE_NON_COPYABLE(className) \
     JUCE_LEAK_DETECTOR(className)
 
 /** This macro can be added to class definitions to disable the use of new/delete to
@@ -272,10 +272,17 @@ namespace juce
 //==============================================================================
 #if JUCE_ANDROID && ! DOXYGEN
  #define JUCE_MODAL_LOOPS_PERMITTED 0
-#else
+#elif ! defined (JUCE_MODAL_LOOPS_PERMITTED)
  /** Some operating environments don't provide a modal loop mechanism, so this flag can be
      used to disable any functions that try to run a modal loop. */
  #define JUCE_MODAL_LOOPS_PERMITTED 1
+#endif
+
+//==============================================================================
+#if JUCE_GCC
+ #define JUCE_PACKED __attribute__((packed))
+#elif ! DOXYGEN
+ #define JUCE_PACKED
 #endif
 
 //==============================================================================
@@ -287,7 +294,7 @@ namespace juce
  #define JUCE_COMPILER_SUPPORTS_MOVE_SEMANTICS 1
 #endif
 
-#if defined (__clang__) && defined (__has_feature)
+#if JUCE_CLANG && defined (__has_feature)
  #if __has_feature (cxx_nullptr)
   #define JUCE_COMPILER_SUPPORTS_NULLPTR 1
  #endif
@@ -301,17 +308,7 @@ namespace juce
  #endif
 #endif
 
-#if defined (_MSC_VER) && _MSC_VER > 1600
-  #define _ALLOW_KEYWORD_MACROS 1 // (to stop VC2012 complaining)
-#endif
-
 #if defined (_MSC_VER) && _MSC_VER >= 1600
- #if _MSC_VER >= 1700
-  #define noexcept throw()
-  #define JUCE_COMPILER_SUPPORTS_NOEXCEPT 1
- #else
-  #define JUCE_COMPILER_SUPPORTS_NOEXCEPT 0
- #endif
  #define JUCE_COMPILER_SUPPORTS_NULLPTR 1
  #define JUCE_COMPILER_SUPPORTS_MOVE_SEMANTICS 1
 #endif
@@ -319,10 +316,19 @@ namespace juce
 //==============================================================================
 // Declare some fake versions of nullptr and noexcept, for older compilers:
 #if ! (DOXYGEN || JUCE_COMPILER_SUPPORTS_NOEXCEPT)
+ #ifdef noexcept
+  #undef noexcept
+ #endif
  #define noexcept  throw()
+ #if defined (_MSC_VER) && _MSC_VER > 1600
+  #define _ALLOW_KEYWORD_MACROS 1 // (to stop VC2012 complaining)
+ #endif
 #endif
 
 #if ! (DOXYGEN || JUCE_COMPILER_SUPPORTS_NULLPTR)
+ #ifdef nullptr
+  #undef nullptr
+ #endif
  #define nullptr (0)
 #endif
 

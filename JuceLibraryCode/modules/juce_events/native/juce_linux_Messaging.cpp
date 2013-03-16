@@ -31,8 +31,11 @@ Display* display = nullptr;
 Window juce_messageWindowHandle = None;
 XContext windowHandleXContext;   // This is referenced from Windowing.cpp
 
-extern void juce_windowMessageReceive (XEvent* event);  // Defined in Windowing.cpp
-extern void juce_handleSelectionRequest (XSelectionRequestEvent &evt);  // Defined in Clipboard.cpp
+typedef bool (*WindowMessageReceiveCallback) (XEvent&);
+WindowMessageReceiveCallback dispatchWindowMessage = nullptr;
+
+typedef void (*SelectionRequestCallback) (XSelectionRequestEvent&);
+SelectionRequestCallback handleSelectionRequest = nullptr;
 
 //==============================================================================
 ScopedXLock::ScopedXLock()       { XLockDisplay (display); }
@@ -89,8 +92,8 @@ public:
         // to keep everything running smoothly..
         if ((++totalEventCount & 1) != 0)
             return dispatchNextXEvent() || dispatchNextInternalMessage();
-        else
-            return dispatchNextInternalMessage() || dispatchNextXEvent();
+
+        return dispatchNextInternalMessage() || dispatchNextXEvent();
     }
 
     // Wait for an event (either XEvent, or an internal Message)
@@ -165,10 +168,11 @@ private:
             XNextEvent (display, &evt);
         }
 
-        if (evt.type == SelectionRequest && evt.xany.window == juce_messageWindowHandle)
-            juce_handleSelectionRequest (evt.xselectionrequest);
-        else if (evt.xany.window != juce_messageWindowHandle)
-            juce_windowMessageReceive (&evt);
+        if (evt.type == SelectionRequest && evt.xany.window == juce_messageWindowHandle
+              && handleSelectionRequest != nullptr)
+            handleSelectionRequest (evt.xselectionrequest);
+        else if (evt.xany.window != juce_messageWindowHandle && dispatchWindowMessage != nullptr)
+            dispatchWindowMessage (evt);
 
         return true;
     }
@@ -220,7 +224,7 @@ namespace LinuxErrorHandling
 
     //==============================================================================
     // Usually happens when client-server connection is broken
-    int ioErrorHandler (Display* display)
+    int ioErrorHandler (Display*)
     {
         DBG ("ERROR: connection to X server broken.. terminating.");
 
@@ -360,7 +364,7 @@ bool MessageManager::postMessageToSystemQueue (MessageManager::MessageBase* cons
     return true;
 }
 
-void MessageManager::broadcastMessage (const String& value)
+void MessageManager::broadcastMessage (const String& /* value */)
 {
     /* TODO */
 }

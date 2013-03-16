@@ -39,7 +39,7 @@ OldSchoolLookAndFeel::OldSchoolLookAndFeel()
     setColour (PopupMenu::highlightedTextColourId,        Colours::black);
     setColour (TextEditor::focusedOutlineColourId,  findColour (TextButton::buttonColourId));
 
-    scrollbarShadow.setShadowProperties (2.2f, 0.5f, 0, 0);
+    scrollbarShadow.setShadowProperties (DropShadow (Colours::black.withAlpha (0.5f), 2, Point<int>()));
 }
 
 OldSchoolLookAndFeel::~OldSchoolLookAndFeel()
@@ -365,7 +365,7 @@ void OldSchoolLookAndFeel::drawComboBox (Graphics& g, int width, int height,
     }
 }
 
-const Font OldSchoolLookAndFeel::getComboBoxFont (ComboBox& box)
+Font OldSchoolLookAndFeel::getComboBoxFont (ComboBox& box)
 {
     Font f (jmin (15.0f, box.getHeight() * 0.85f));
     f.setHorizontalScale (0.9f);

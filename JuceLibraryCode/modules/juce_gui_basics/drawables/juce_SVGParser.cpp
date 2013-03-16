@@ -50,12 +50,12 @@ public:
         if (xml.hasAttribute ("transform"))
             newState.addTransform (xml);
 
-        newState.elementX = getCoordLength (xml.getStringAttribute ("x", String (newState.elementX)), viewBoxW);
-        newState.elementY = getCoordLength (xml.getStringAttribute ("y", String (newState.elementY)), viewBoxH);
-        newState.width    = getCoordLength (xml.getStringAttribute ("width", String (newState.width)), viewBoxW);
-        newState.height   = getCoordLength (xml.getStringAttribute ("height", String (newState.height)), viewBoxH);
+        newState.elementX = getCoordLength (xml.getStringAttribute ("x",      String (newState.elementX)), viewBoxW);
+        newState.elementY = getCoordLength (xml.getStringAttribute ("y",      String (newState.elementY)), viewBoxH);
+        newState.width    = getCoordLength (xml.getStringAttribute ("width",  String (newState.width)),    viewBoxW);
+        newState.height   = getCoordLength (xml.getStringAttribute ("height", String (newState.height)),   viewBoxH);
 
-        if (newState.width <= 0)  newState.width  = 100;
+        if (newState.width  <= 0) newState.width  = 100;
         if (newState.height <= 0) newState.height = 100;
 
         if (xml.hasAttribute ("viewBox"))
@@ -82,44 +82,34 @@ public:
                 }
                 else
                 {
-                    if (aspect.containsIgnoreCase ("slice"))
-                        placementFlags |= RectanglePlacement::fillDestination;
+                    if (aspect.containsIgnoreCase ("slice"))        placementFlags |= RectanglePlacement::fillDestination;
 
-                    if (aspect.containsIgnoreCase ("xMin"))
-                        placementFlags |= RectanglePlacement::xLeft;
-                    else if (aspect.containsIgnoreCase ("xMax"))
-                        placementFlags |= RectanglePlacement::xRight;
-                    else
-                        placementFlags |= RectanglePlacement::xMid;
+                    if (aspect.containsIgnoreCase ("xMin"))         placementFlags |= RectanglePlacement::xLeft;
+                    else if (aspect.containsIgnoreCase ("xMax"))    placementFlags |= RectanglePlacement::xRight;
+                    else                                            placementFlags |= RectanglePlacement::xMid;
 
-                    if (aspect.containsIgnoreCase ("yMin"))
-                        placementFlags |= RectanglePlacement::yTop;
-                    else if (aspect.containsIgnoreCase ("yMax"))
-                        placementFlags |= RectanglePlacement::yBottom;
-                    else
-                        placementFlags |= RectanglePlacement::yMid;
+                    if (aspect.containsIgnoreCase ("yMin"))         placementFlags |= RectanglePlacement::yTop;
+                    else if (aspect.containsIgnoreCase ("yMax"))    placementFlags |= RectanglePlacement::yBottom;
+                    else                                            placementFlags |= RectanglePlacement::yMid;
                 }
 
-                const RectanglePlacement placement (placementFlags);
-
-                newState.transform
-                    = placement.getTransformToFit (Rectangle<float> (vxy.x, vxy.y, vwh.x, vwh.y),
-                                                   Rectangle<float> (newState.width, newState.height))
-                               .followedBy (newState.transform);
+                newState.transform = RectanglePlacement (placementFlags)
+                                        .getTransformToFit (Rectangle<float> (vxy.x, vxy.y, vwh.x, vwh.y),
+                                                            Rectangle<float> (newState.width, newState.height))
+                                        .followedBy (newState.transform);
             }
         }
         else
         {
-            if (viewBoxW == 0)
-                newState.viewBoxW = newState.width;
-
-            if (viewBoxH == 0)
-                newState.viewBoxH = newState.height;
+            if (viewBoxW == 0)  newState.viewBoxW = newState.width;
+            if (viewBoxH == 0)  newState.viewBoxH = newState.height;
         }
 
         newState.parseSubElements (xml, drawable);
 
-        drawable->resetContentAreaAndBoundingBoxToFitChildren();
+        drawable->setContentArea (RelativeRectangle (Rectangle<float> (newState.viewBoxW, newState.viewBoxH)));
+        drawable->resetBoundingBoxToContentArea();
+
         return drawable;
     }
 
@@ -156,9 +146,7 @@ private:
 
     DrawableComposite* parseSwitch (const XmlElement& xml)
     {
-        const XmlElement* const group = xml.getChildByName ("g");
-
-        if (group != nullptr)
+        if (const XmlElement* const group = xml.getChildByName ("g"))
             return parseGroupElement (*group);
 
         return nullptr;
@@ -400,6 +388,7 @@ private:
                 path.closeSubPath();
                 last = last2 = subpathStart;
                 d = d.findEndOfWhitespace();
+                lastCommandChar = 'M';
                 break;
 
             default:
@@ -581,24 +570,110 @@ private:
 
     void addGradientStopsIn (ColourGradient& cg, const XmlElement* const fillXml) const
     {
-        if (fillXml == 0)
-            return;
-
-        forEachXmlChildElementWithTagName (*fillXml, e, "stop")
+        if (fillXml != nullptr)
         {
-            int index = 0;
-            Colour col (parseColour (getStyleAttribute  (e, "stop-color"), index, Colours::black));
+            forEachXmlChildElementWithTagName (*fillXml, e, "stop")
+            {
+                int index = 0;
+                Colour col (parseColour (getStyleAttribute  (e, "stop-color"), index, Colours::black));
 
-            const String opacity (getStyleAttribute (e, "stop-opacity", "1"));
-            col = col.withMultipliedAlpha (jlimit (0.0f, 1.0f, opacity.getFloatValue()));
+                const String opacity (getStyleAttribute (e, "stop-opacity", "1"));
+                col = col.withMultipliedAlpha (jlimit (0.0f, 1.0f, opacity.getFloatValue()));
 
-            double offset = e->getDoubleAttribute ("offset");
+                double offset = e->getDoubleAttribute ("offset");
 
-            if (e->getStringAttribute ("offset").containsChar ('%'))
-                offset *= 0.01;
+                if (e->getStringAttribute ("offset").containsChar ('%'))
+                    offset *= 0.01;
 
-            cg.addColour (jlimit (0.0, 1.0, offset), col);
+                cg.addColour (jlimit (0.0, 1.0, offset), col);
+            }
         }
+    }
+
+    FillType getGradientFillType (const XmlElement* fillXml,
+                                  const Path& path,
+                                  const float opacity) const
+    {
+        ColourGradient gradient;
+
+        addGradientStopsIn (gradient, findLinkedElement (fillXml));
+        addGradientStopsIn (gradient, fillXml);
+
+        if (gradient.getNumColours() > 0)
+        {
+            gradient.addColour (0.0, gradient.getColour (0));
+            gradient.addColour (1.0, gradient.getColour (gradient.getNumColours() - 1));
+        }
+        else
+        {
+            gradient.addColour (0.0, Colours::black);
+            gradient.addColour (1.0, Colours::black);
+        }
+
+        if (opacity < 1.0f)
+            gradient.multiplyOpacity (opacity);
+
+        jassert (gradient.getNumColours() > 0);
+
+        gradient.isRadial = fillXml->hasTagName ("radialGradient");
+
+        float gradientWidth = viewBoxW;
+        float gradientHeight = viewBoxH;
+        float dx = 0.0f;
+        float dy = 0.0f;
+
+        const bool userSpace = fillXml->getStringAttribute ("gradientUnits").equalsIgnoreCase ("userSpaceOnUse");
+
+        if (! userSpace)
+        {
+            const Rectangle<float> bounds (path.getBounds());
+            dx = bounds.getX();
+            dy = bounds.getY();
+            gradientWidth = bounds.getWidth();
+            gradientHeight = bounds.getHeight();
+        }
+
+        if (gradient.isRadial)
+        {
+            if (userSpace)
+                gradient.point1.setXY (dx + getCoordLength (fillXml->getStringAttribute ("cx", "50%"), gradientWidth),
+                                       dy + getCoordLength (fillXml->getStringAttribute ("cy", "50%"), gradientHeight));
+            else
+                gradient.point1.setXY (dx + gradientWidth  * getCoordLength (fillXml->getStringAttribute ("cx", "50%"), 1.0f),
+                                       dy + gradientHeight * getCoordLength (fillXml->getStringAttribute ("cy", "50%"), 1.0f));
+
+            const float radius = getCoordLength (fillXml->getStringAttribute ("r", "50%"), gradientWidth);
+            gradient.point2 = gradient.point1 + Point<float> (radius, 0.0f);
+
+            //xxx (the fx, fy focal point isn't handled properly here..)
+        }
+        else
+        {
+            if (userSpace)
+            {
+                gradient.point1.setXY (dx + getCoordLength (fillXml->getStringAttribute ("x1", "0%"), gradientWidth),
+                                       dy + getCoordLength (fillXml->getStringAttribute ("y1", "0%"), gradientHeight));
+
+                gradient.point2.setXY (dx + getCoordLength (fillXml->getStringAttribute ("x2", "100%"), gradientWidth),
+                                       dy + getCoordLength (fillXml->getStringAttribute ("y2", "0%"), gradientHeight));
+            }
+            else
+            {
+                gradient.point1.setXY (dx + gradientWidth * getCoordLength (fillXml->getStringAttribute ("x1", "0%"), 1.0f),
+                                       dy + gradientHeight * getCoordLength (fillXml->getStringAttribute ("y1", "0%"), 1.0f));
+
+                gradient.point2.setXY (dx + gradientWidth * getCoordLength (fillXml->getStringAttribute ("x2", "100%"), 1.0f),
+                                       dy + gradientHeight * getCoordLength (fillXml->getStringAttribute ("y2", "0%"), 1.0f));
+            }
+
+            if (gradient.point1 == gradient.point2)
+                return Colour (gradient.getColour (gradient.getNumColours() - 1));
+        }
+
+        FillType type (gradient);
+        type.transform = parseTransform (fillXml->getStringAttribute ("gradientTransform"))
+                           .followedBy (transform);
+        return type;
     }
 
     FillType getPathFillType (const Path& path,
@@ -620,103 +695,16 @@ private:
             const String id (fill.fromFirstOccurrenceOf ("#", false, false)
                                  .upToLastOccurrenceOf (")", false, false).trim());
 
-            const XmlElement* const fillXml = findElementForId (topLevelXml, id);
-
-            if (fillXml != nullptr
-                 && (fillXml->hasTagName ("linearGradient")
-                      || fillXml->hasTagName ("radialGradient")))
-            {
-                const XmlElement* inheritedFrom = findLinkedElement (fillXml);
-
-                ColourGradient gradient;
-
-                addGradientStopsIn (gradient, inheritedFrom);
-                addGradientStopsIn (gradient, fillXml);
-
-                if (gradient.getNumColours() > 0)
-                {
-                    gradient.addColour (0.0, gradient.getColour (0));
-                    gradient.addColour (1.0, gradient.getColour (gradient.getNumColours() - 1));
-                }
-                else
-                {
-                    gradient.addColour (0.0, Colours::black);
-                    gradient.addColour (1.0, Colours::black);
-                }
-
-                if (overallOpacity.isNotEmpty())
-                    gradient.multiplyOpacity (overallOpacity.getFloatValue());
-
-                jassert (gradient.getNumColours() > 0);
-
-                gradient.isRadial = fillXml->hasTagName ("radialGradient");
-
-                float gradientWidth = viewBoxW;
-                float gradientHeight = viewBoxH;
-                float dx = 0.0f;
-                float dy = 0.0f;
-
-                const bool userSpace = fillXml->getStringAttribute ("gradientUnits").equalsIgnoreCase ("userSpaceOnUse");
-
-                if (! userSpace)
-                {
-                    const Rectangle<float> bounds (path.getBounds());
-                    dx = bounds.getX();
-                    dy = bounds.getY();
-                    gradientWidth = bounds.getWidth();
-                    gradientHeight = bounds.getHeight();
-                }
-
-                if (gradient.isRadial)
-                {
-                    if (userSpace)
-                        gradient.point1.setXY (dx + getCoordLength (fillXml->getStringAttribute ("cx", "50%"), gradientWidth),
-                                               dy + getCoordLength (fillXml->getStringAttribute ("cy", "50%"), gradientHeight));
-                    else
-                        gradient.point1.setXY (dx + gradientWidth * getCoordLength (fillXml->getStringAttribute ("cx", "50%"), 1.0f),
-                                               dy + gradientHeight * getCoordLength (fillXml->getStringAttribute ("cy", "50%"), 1.0f));
-
-                    const float radius = getCoordLength (fillXml->getStringAttribute ("r", "50%"), gradientWidth);
-                    gradient.point2 = gradient.point1 + Point<float> (radius, 0.0f);
-
-                    //xxx (the fx, fy focal point isn't handled properly here..)
-                }
-                else
-                {
-                    if (userSpace)
-                    {
-                        gradient.point1.setXY (dx + getCoordLength (fillXml->getStringAttribute ("x1", "0%"), gradientWidth),
-                                               dy + getCoordLength (fillXml->getStringAttribute ("y1", "0%"), gradientHeight));
-
-                        gradient.point2.setXY (dx + getCoordLength (fillXml->getStringAttribute ("x2", "100%"), gradientWidth),
-                                               dy + getCoordLength (fillXml->getStringAttribute ("y2", "0%"), gradientHeight));
-                    }
-                    else
-                    {
-                        gradient.point1.setXY (dx + gradientWidth * getCoordLength (fillXml->getStringAttribute ("x1", "0%"), 1.0f),
-                                               dy + gradientHeight * getCoordLength (fillXml->getStringAttribute ("y1", "0%"), 1.0f));
-
-                        gradient.point2.setXY (dx + gradientWidth * getCoordLength (fillXml->getStringAttribute ("x2", "100%"), 1.0f),
-                                               dy + gradientHeight * getCoordLength (fillXml->getStringAttribute ("y2", "0%"), 1.0f));
-                    }
-
-                    if (gradient.point1 == gradient.point2)
-                        return Colour (gradient.getColour (gradient.getNumColours() - 1));
-                }
-
-                FillType type (gradient);
-                type.transform = parseTransform (fillXml->getStringAttribute ("gradientTransform"))
-                                   .followedBy (transform);
-                return type;
-            }
+            if (const XmlElement* const fillXml = findElementForId (topLevelXml, id))
+                if (fillXml->hasTagName ("linearGradient") || fillXml->hasTagName ("radialGradient"))
+                    return getGradientFillType (fillXml, path, opacity);
         }
 
         if (fill.equalsIgnoreCase ("none"))
             return Colours::transparentBlack;
 
         int i = 0;
-        const Colour colour (parseColour (fill, i, defaultColour));
-        return colour.withMultipliedAlpha (opacity);
+        return parseColour (fill, i, defaultColour).withMultipliedAlpha (opacity);
     }
 
     PathStrokeType getStrokeFor (const XmlElement* const xml) const
@@ -1038,10 +1026,10 @@ private:
                 return Colour ((uint8) (hex [0] * 0x11),
                                (uint8) (hex [1] * 0x11),
                                (uint8) (hex [2] * 0x11));
-            else
-                return Colour ((uint8) ((hex [0] << 4) + hex [1]),
-                               (uint8) ((hex [2] << 4) + hex [3]),
-                               (uint8) ((hex [4] << 4) + hex [5]));
+
+            return Colour ((uint8) ((hex [0] << 4) + hex [1]),
+                           (uint8) ((hex [2] << 4) + hex [3]),
+                           (uint8) ((hex [4] << 4) + hex [5]));
         }
         else if (s [index] == 'r'
                   && s [index + 1] == 'g'
@@ -1106,7 +1094,7 @@ private:
             else if (t.startsWithIgnoreCase ("scale"))
             {
                 if (tokens.size() == 1)
-                    trans = AffineTransform::scale (numbers[0], numbers[0]);
+                    trans = AffineTransform::scale (numbers[0]);
                 else
                     trans = AffineTransform::scale (numbers[0], numbers[1]);
             }
@@ -1225,9 +1213,7 @@ private:
             if (e->compareAttribute ("id", id))
                 return e;
 
-            const XmlElement* const found = findElementForId (e, id);
-
-            if (found != nullptr)
+            if (const XmlElement* const found = findElementForId (e, id))
                 return found;
         }
 

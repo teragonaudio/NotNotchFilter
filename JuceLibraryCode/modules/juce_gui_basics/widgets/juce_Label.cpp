@@ -99,7 +99,7 @@ void Label::setFont (const Font& newFont)
     }
 }
 
-const Font& Label::getFont() const noexcept
+Font Label::getFont() const noexcept
 {
     return font;
 }
@@ -161,9 +161,11 @@ void Label::attachToComponent (Component* owner, const bool onLeft)
 
 void Label::componentMovedOrResized (Component& component, bool /*wasMoved*/, bool /*wasResized*/)
 {
+    const Font f (getLookAndFeel().getLabelFont (*this));
+
     if (leftOfOwnerComp)
     {
-        setSize (jmin (getFont().getStringWidth (textValue.toString()) + 8, component.getX()),
+        setSize (jmin (f.getStringWidth (textValue.toString()) + 8, component.getX()),
                  component.getHeight());
 
         setTopRightPosition (component.getX(), component.getY());
@@ -171,7 +173,7 @@ void Label::componentMovedOrResized (Component& component, bool /*wasMoved*/, bo
     else
     {
         setSize (component.getWidth(),
-                 8 + roundToInt (getFont().getHeight()));
+                 8 + roundToInt (f.getHeight()));
 
         setTopLeftPosition (component.getX(), component.getY() - getHeight());
     }
@@ -179,8 +181,8 @@ void Label::componentMovedOrResized (Component& component, bool /*wasMoved*/, bo
 
 void Label::componentParentHierarchyChanged (Component& component)
 {
-    if (component.getParentComponent() != nullptr)
-        component.getParentComponent()->addChildComponent (this);
+    if (Component* parent = component.getParentComponent())
+        parent->addChildComponent (this);
 }
 
 void Label::componentVisibilityChanged (Component& component)
@@ -192,7 +194,12 @@ void Label::componentVisibilityChanged (Component& component)
 void Label::textWasEdited() {}
 void Label::textWasChanged() {}
 void Label::editorShown (TextEditor*) {}
-void Label::editorAboutToBeHidden (TextEditor*) {}
+
+void Label::editorAboutToBeHidden (TextEditor*)
+{
+    if (ComponentPeer* const peer = getPeer())
+        peer->dismissPendingTextInput();
+}
 
 void Label::showEditor()
 {
@@ -280,22 +287,14 @@ bool Label::isBeingEdited() const noexcept
 TextEditor* Label::createEditorComponent()
 {
     TextEditor* const ed = new TextEditor (getName());
-    ed->setFont (font);
-
-    // copy these colours from our own settings..
-    const int cols[] = { TextEditor::backgroundColourId,
-                         TextEditor::textColourId,
-                         TextEditor::highlightColourId,
-                         TextEditor::highlightedTextColourId,
-                         TextEditor::outlineColourId,
-                         TextEditor::focusedOutlineColourId,
-                         TextEditor::shadowColourId,
-                         CaretComponent::caretColourId };
-
-    for (int i = 0; i < numElementsInArray (cols); ++i)
-        ed->setColour (cols[i], findColour (cols[i]));
-
+    ed->applyFontToAllText (getLookAndFeel().getLabelFont (*this));
+    copyAllExplicitColoursTo (*ed);
     return ed;
+}
+
+TextEditor* Label::getCurrentTextEditor() const noexcept
+{
+    return editor;
 }
 
 //==============================================================================
@@ -447,23 +446,4 @@ void Label::textEditorEscapeKeyPressed (TextEditor& ed)
 void Label::textEditorFocusLost (TextEditor& ed)
 {
     textEditorTextChanged (ed);
-}
-
-
-const Identifier Label::Ids::tagType ("LABEL");
-const Identifier Label::Ids::text ("text");
-const Identifier Label::Ids::font ("font");
-const Identifier Label::Ids::editMode ("editMode");
-const Identifier Label::Ids::justification ("justification");
-const Identifier Label::Ids::focusLossDiscardsChanges ("focusLossDiscardsChanges");
-
-void Label::refreshFromValueTree (const ValueTree& state, ComponentBuilder&)
-{
-    ComponentBuilder::refreshBasicComponentProperties (*this, state);
-
-    setText (state [Ids::text].toString(), false);
-    setFont (Font::fromString (state [Ids::font]));
-    const int editMode = static_cast <int> (state [Ids::editMode]);
-    setEditable (editMode == 2, editMode == 3, static_cast <bool> (state [Ids::focusLossDiscardsChanges]));
-    setJustificationType (static_cast <int> (state [Ids::justification]));
 }

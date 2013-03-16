@@ -107,11 +107,11 @@ public:
     */
     void flush();
 
-    bool write (const void* buffer, int howMany);
+    bool write (const void* buffer, size_t howMany);
     int64 getPosition()                                 { return position; }
     bool setPosition (int64 newPosition);
     int writeFromInputStream (InputStream& source, int64 maxNumBytesToWrite);
-    void writeRepeatedByte (uint8 byte, int numTimesToRepeat);
+    void writeRepeatedByte (uint8 byte, size_t numTimesToRepeat);
 
 private:
     //==============================================================================
@@ -120,9 +120,9 @@ private:
     size_t position, size;
 
     void trimExternalBlockSize();
-    void prepareToWrite (int numBytes);
+    void prepareToWrite (size_t);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MemoryOutputStream);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MemoryOutputStream)
 };
 
 /** Copies all the data that has been written to a MemoryOutputStream into another stream. */

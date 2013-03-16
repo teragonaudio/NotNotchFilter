@@ -64,7 +64,7 @@ public:
     Array <KerningPair> kerningPairs;
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GlyphInfo);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GlyphInfo)
 };
 
 //==============================================================================
@@ -194,11 +194,10 @@ void CustomTypeface::addKerningPair (const juce_wchar char1, const juce_wchar ch
 {
     if (extraAmount != 0)
     {
-        GlyphInfo* const g = findGlyph (char1, true);
-        jassert (g != nullptr); // can only add kerning pairs for characters that exist!
-
-        if (g != nullptr)
+        if (GlyphInfo* const g = findGlyph (char1, true))
             g->addKerningPair (char2, extraAmount);
+        else
+            jassertfalse; // can only add kerning pairs for characters that exist!
     }
 }
 
@@ -304,15 +303,9 @@ bool CustomTypeface::writeToStream (OutputStream& outputStream)
 }
 
 //==============================================================================
-float CustomTypeface::getAscent() const
-{
-    return ascent;
-}
-
-float CustomTypeface::getDescent() const
-{
-    return 1.0f - ascent;
-}
+float CustomTypeface::getAscent() const                 { return ascent; }
+float CustomTypeface::getDescent() const                { return 1.0f - ascent; }
+float CustomTypeface::getHeightToPointsFactor() const   { return ascent; }
 
 float CustomTypeface::getStringWidth (const String& text)
 {

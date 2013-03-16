@@ -78,7 +78,6 @@ public:
     static Point<int> getMousePosition();
 
     /** Makes the mouse pointer jump to a given location.
-
         The co-ordinates are relative to the top-left of the main monitor.
     */
     static void setMousePosition (const Point<int>& newPosition);
@@ -92,12 +91,17 @@ public:
     */
     static Point<int> getLastMouseDownPosition();
 
-    /** Returns the number of times the mouse button has been clicked since the
-        app started.
-
+    /** Returns the number of times the mouse button has been clicked since the app started.
         Each mouse-down event increments this number by 1.
+        @see getMouseWheelMoveCounter
     */
-    static int getMouseButtonClickCounter();
+    int getMouseButtonClickCounter() const noexcept;
+
+    /** Returns the number of times the mouse wheel has been moved since the app started.
+        Each mouse-wheel event increments this number by 1.
+        @see getMouseButtonClickCounter
+    */
+    int getMouseWheelMoveCounter() const noexcept;
 
     //==============================================================================
     /** This lets you prevent the screensaver from becoming active.
@@ -171,7 +175,7 @@ public:
     /** Returns the component that is currently being used in kiosk-mode.
 
         This is the component that was last set by setKioskModeComponent(). If none
-        has been set, this returns 0.
+        has been set, this returns nullptr.
     */
     Component* getKioskModeComponent() const noexcept               { return kioskModeComponent; }
 
@@ -197,7 +201,7 @@ public:
         This will drill down into top-level windows to find the child component at
         the given position.
 
-        Returns 0 if the co-ordinates are inside a non-Juce window.
+        Returns nullptr if the co-ordinates are inside a non-Juce window.
     */
     Component* findComponentAt (const Point<int>& screenPosition) const;
 
@@ -231,7 +235,8 @@ public:
     //==============================================================================
     /** Returns the number of MouseInputSource objects the system has at its disposal.
         In a traditional single-mouse system, there might be only one object. On a multi-touch
-        system, there could be one input source per potential finger.
+        system, there could be one input source per potential finger. The number of mouse
+        sources returned here may increase dynamically as the program runs.
         To find out how many mouse events are currently happening, use getNumDraggingMouseSources().
         @see getMouseSource
     */
@@ -379,7 +384,7 @@ private:
     friend class TopLevelWindowManager;
 
     OwnedArray <MouseInputSource> mouseSources;
-    void createMouseInputSources();
+    bool addMouseInputSource();
 
     ListenerList <MouseListener> mouseListeners;
     ListenerList <FocusChangeListener> focusListeners;
@@ -391,8 +396,9 @@ private:
     Point<int> lastFakeMouseMove;
     void sendMouseMove();
 
-    int mouseClickCounter;
+    int mouseClickCounter, mouseWheelCounter;
     void incrementMouseClickCounter() noexcept;
+    void incrementMouseWheelCounter() noexcept;
 
     ScopedPointer<Timer> dragRepeater;
 
@@ -422,7 +428,7 @@ private:
     Desktop();
     ~Desktop();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Desktop);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Desktop)
 };
 
 

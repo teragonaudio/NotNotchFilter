@@ -84,47 +84,25 @@ private:
     }
 };
 
-//==============================================================================
-class TemporaryMainMenuWithStandardCommands
+static NSMutableArray* createAllowedTypesArray (const StringArray& filters)
 {
-public:
-    TemporaryMainMenuWithStandardCommands()
-        : oldMenu (MenuBarModel::getMacMainMenu())
+    if (filters.size() == 0)
+        return nil;
+
+    NSMutableArray* filterArray = [[[NSMutableArray alloc] init] autorelease];
+
+    for (int i = 0; i < filters.size(); ++i)
     {
-        MenuBarModel::setMacMainMenu (nullptr);
+        const String f (filters[i].replace ("*.", ""));
 
-        NSMenu* menu = [[NSMenu alloc] initWithTitle: nsStringLiteral ("Edit")];
-        NSMenuItem* item;
+        if (f == "*")
+            return nil;
 
-        item = [[NSMenuItem alloc] initWithTitle: NSLocalizedString (nsStringLiteral ("Cut"), nil)
-                                          action: @selector (cut:)  keyEquivalent: nsStringLiteral ("x")];
-        [menu addItem: item];
-        [item release];
-
-        item = [[NSMenuItem alloc] initWithTitle: NSLocalizedString (nsStringLiteral ("Copy"), nil)
-                                          action: @selector (copy:)  keyEquivalent: nsStringLiteral ("c")];
-        [menu addItem: item];
-        [item release];
-
-        item = [[NSMenuItem alloc] initWithTitle: NSLocalizedString (nsStringLiteral ("Paste"), nil)
-                                          action: @selector (paste:)  keyEquivalent: nsStringLiteral ("v")];
-        [menu addItem: item];
-        [item release];
-
-        item = [[NSApp mainMenu] addItemWithTitle: NSLocalizedString (nsStringLiteral ("Edit"), nil)
-                                          action: nil  keyEquivalent: nsEmptyString()];
-        [[NSApp mainMenu] setSubmenu: menu forItem: item];
-        [menu release];
+        [filterArray addObject: juceStringToNS (f)];
     }
 
-    ~TemporaryMainMenuWithStandardCommands()
-    {
-        MenuBarModel::setMacMainMenu (oldMenu);
-    }
-
-private:
-    MenuBarModel* oldMenu;
-};
+    return filterArray;
+}
 
 //==============================================================================
 void FileChooser::showPlatformDialog (Array<File>& results,
@@ -140,7 +118,9 @@ void FileChooser::showPlatformDialog (Array<File>& results,
 {
     JUCE_AUTORELEASEPOOL
 
-    const TemporaryMainMenuWithStandardCommands tempMenu;
+    ScopedPointer<TemporaryMainMenuWithStandardCommands> tempMenu;
+    if (JUCEApplication::isStandaloneApp())
+        tempMenu = new TemporaryMainMenuWithStandardCommands();
 
     StringArray* filters = new StringArray();
     filters->addTokens (filter.replaceCharacters (",:", ";;"), ";", String::empty);
@@ -161,6 +141,7 @@ void FileChooser::showPlatformDialog (Array<File>& results,
                                         : [NSOpenPanel openPanel];
 
     [panel setTitle: juceStringToNS (title)];
+    [panel setAllowedFileTypes: createAllowedTypesArray (*filters)];
 
     if (! isSaveDialogue)
     {

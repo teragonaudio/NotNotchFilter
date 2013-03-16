@@ -23,8 +23,8 @@
   ==============================================================================
 */
 
-TimeSliceThread::TimeSliceThread (const String& threadName)
-    : Thread (threadName),
+TimeSliceThread::TimeSliceThread (const String& name)
+    : Thread (name),
       clientBeingCalled (nullptr)
 {
 }
@@ -59,11 +59,11 @@ void TimeSliceThread::removeTimeSliceClient (TimeSliceClient* const client)
         const ScopedLock sl2 (callbackLock);
         const ScopedLock sl3 (listLock);
 
-        clients.removeValue (client);
+        clients.removeFirstMatchingValue (client);
     }
     else
     {
-        clients.removeValue (client);
+        clients.removeFirstMatchingValue (client);
     }
 }
 
@@ -125,8 +125,7 @@ void TimeSliceThread::run()
 
                 index = clients.size() > 0 ? ((index + 1) % clients.size()) : 0;
 
-                TimeSliceClient* const firstClient = getNextClient (index);
-                if (firstClient != nullptr)
+                if (TimeSliceClient* const firstClient = getNextClient (index))
                     nextClientTime = firstClient->nextCallTime;
             }
 
@@ -156,7 +155,7 @@ void TimeSliceThread::run()
                     if (msUntilNextCall >= 0)
                         clientBeingCalled->nextCallTime += RelativeTime::milliseconds (msUntilNextCall);
                     else
-                        clients.removeValue (clientBeingCalled);
+                        clients.removeFirstMatchingValue (clientBeingCalled);
 
                     clientBeingCalled = nullptr;
                 }

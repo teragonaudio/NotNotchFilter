@@ -46,11 +46,15 @@
 //==============================================================================
 #if JUCE_MAC
  #import <WebKit/WebKit.h>
- #define Point CarbonDummyPointName
- #define Component CarbonDummyCompName
- #import <Carbon/Carbon.h> // still needed for SetSystemUIMode()
- #undef Point
- #undef Component
+ #import <IOKit/pwr_mgt/IOPMLib.h>
+
+ #if JUCE_SUPPORT_CARBON
+  #define Point CarbonDummyPointName
+  #define Component CarbonDummyCompName
+  #import <Carbon/Carbon.h> // still needed for SetSystemUIMode()
+  #undef Point
+  #undef Component
+ #endif
 
 //==============================================================================
 #elif JUCE_WINDOWS
@@ -85,7 +89,7 @@
  #endif
 
  #if JUCE_MINGW
-  #include <Imm.h>
+  #include <imm.h>
  #endif
 
 //==============================================================================
@@ -129,6 +133,8 @@
 //==============================================================================
 namespace juce
 {
+    extern bool juce_areThereAnyAlwaysOnTopWindows();
+
 
 // START_AUTOINCLUDE components/*.cpp, mouse/*.cpp, keyboard/*.cpp, buttons/*.cpp,
 // drawables/*.cpp, filebrowser/*.cpp, layout/*.cpp, lookandfeel/*.cpp,
@@ -182,6 +188,7 @@ namespace juce
 #include "layout/juce_ComponentBoundsConstrainer.cpp"
 #include "layout/juce_ComponentBuilder.cpp"
 #include "layout/juce_ComponentMovementWatcher.cpp"
+#include "layout/juce_ConcertinaPanel.cpp"
 #include "layout/juce_GroupComponent.cpp"
 #include "layout/juce_MultiDocumentPanel.cpp"
 #include "layout/juce_ResizableBorderComponent.cpp"

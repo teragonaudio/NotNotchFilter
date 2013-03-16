@@ -125,9 +125,9 @@ struct ObjCClass
     template <typename Type>
     static Type getIvar (id self, const char* name)
     {
-        Type v = Type();
-        object_getInstanceVariable (self, name, (void**) &v);
-        return v;
+        void* v = nullptr;
+        object_getInstanceVariable (self, name, &v);
+        return static_cast <Type> (v);
     }
 
     Class cls;
@@ -135,10 +135,10 @@ struct ObjCClass
 private:
     static String getRandomisedName (const char* root)
     {
-        return root + String::toHexString (Random::getSystemRandom().nextInt64());
+        return root + String::toHexString (juce::Random::getSystemRandom().nextInt64());
     }
 
-    JUCE_DECLARE_NON_COPYABLE (ObjCClass);
+    JUCE_DECLARE_NON_COPYABLE (ObjCClass)
 };
 
 

@@ -393,7 +393,7 @@ public:
     */
     bool containsIgnoreCase (const String& text) const noexcept;
 
-    /** Tests whether the string contains another substring as a distict word.
+    /** Tests whether the string contains another substring as a distinct word.
 
         @returns    true if the string contains this word, surrounded by
                     non-alphanumeric characters
@@ -401,7 +401,7 @@ public:
     */
     bool containsWholeWord (const String& wordToLookFor) const noexcept;
 
-    /** Tests whether the string contains another substring as a distict word.
+    /** Tests whether the string contains another substring as a distinct word.
 
         @returns    true if the string contains this word, surrounded by
                     non-alphanumeric characters
@@ -409,7 +409,7 @@ public:
     */
     bool containsWholeWordIgnoreCase (const String& wordToLookFor) const noexcept;
 
-    /** Finds an instance of another substring if it exists as a distict word.
+    /** Finds an instance of another substring if it exists as a distinct word.
 
         @returns    if the string contains this word, surrounded by non-alphanumeric characters,
                     then this will return the index of the start of the substring. If it isn't
@@ -418,7 +418,7 @@ public:
     */
     int indexOfWholeWord (const String& wordToLookFor) const noexcept;
 
-    /** Finds an instance of another substring if it exists as a distict word.
+    /** Finds an instance of another substring if it exists as a distinct word.
 
         @returns    if the string contains this word, surrounded by non-alphanumeric characters,
                     then this will return the index of the start of the substring. If it isn't
@@ -579,7 +579,7 @@ public:
         then to use that to iterate the string.
         @see getCharPointer
     */
-    const juce_wchar operator[] (int index) const noexcept;
+    juce_wchar operator[] (int index) const noexcept;
 
     /** Returns the final character of the string.
         If the string is empty this will return 0.
@@ -647,7 +647,7 @@ public:
     */
     String fromFirstOccurrenceOf (const String& substringToStartFrom,
                                   bool includeSubStringInResult,
-                                        bool ignoreCase) const;
+                                  bool ignoreCase) const;
 
     /** Returns a section of the string starting from the last occurrence of a given substring.
 
@@ -1096,7 +1096,7 @@ public:
         The number returned does NOT include the trailing zero.
         @see toUTF8, copyToUTF8
     */
-    int getNumBytesAsUTF8() const noexcept;
+    size_t getNumBytesAsUTF8() const noexcept;
 
     //==============================================================================
     /** Copies the string to a buffer as UTF-8 characters.
@@ -1114,7 +1114,7 @@ public:
                                 end, and will return the number of bytes that were actually used.
         @see CharPointer_UTF8::writeWithDestByteLimit
     */
-    int copyToUTF8 (CharPointer_UTF8::CharType* destBuffer, int maxBufferSizeBytes) const noexcept;
+    size_t copyToUTF8 (CharPointer_UTF8::CharType* destBuffer, size_t maxBufferSizeBytes) const noexcept;
 
     /** Copies the string to a buffer as UTF-16 characters.
 
@@ -1131,7 +1131,7 @@ public:
                                 end, and will return the number of bytes that were actually used.
         @see CharPointer_UTF16::writeWithDestByteLimit
     */
-    int copyToUTF16 (CharPointer_UTF16::CharType* destBuffer, int maxBufferSizeBytes) const noexcept;
+    size_t copyToUTF16 (CharPointer_UTF16::CharType* destBuffer, size_t maxBufferSizeBytes) const noexcept;
 
     /** Copies the string to a buffer as UTF-32 characters.
 
@@ -1148,7 +1148,7 @@ public:
                                 end, and will return the number of bytes that were actually used.
         @see CharPointer_UTF32::writeWithDestByteLimit
     */
-    int copyToUTF32 (CharPointer_UTF32::CharType* destBuffer, int maxBufferSizeBytes) const noexcept;
+    size_t copyToUTF32 (CharPointer_UTF32::CharType* destBuffer, size_t maxBufferSizeBytes) const noexcept;
 
     //==============================================================================
     /** Increases the string's internally allocated storage.
@@ -1262,6 +1262,8 @@ JUCE_API String& JUCE_CALLTYPE operator<< (String& string1, short number);
 JUCE_API String& JUCE_CALLTYPE operator<< (String& string1, int number);
 /** Appends a decimal number at the end of a string. */
 JUCE_API String& JUCE_CALLTYPE operator<< (String& string1, long number);
+/** Appends a decimal number at the end of a string. */
+JUCE_API String& JUCE_CALLTYPE operator<< (String& string1, int64 number);
 /** Appends a decimal number at the end of a string. */
 JUCE_API String& JUCE_CALLTYPE operator<< (String& string1, float number);
 /** Appends a decimal number at the end of a string. */

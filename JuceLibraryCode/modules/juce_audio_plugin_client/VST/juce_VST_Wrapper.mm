@@ -70,6 +70,7 @@ static pascal OSStatus viewBoundsChangedEvent (EventHandlerCallRef, EventRef, vo
 #endif
 
 //==============================================================================
+void initialiseMac();
 void initialiseMac()
 {
    #if ! JUCE_64BIT
@@ -77,6 +78,7 @@ void initialiseMac()
    #endif
 }
 
+void* attachComponentToWindowRef (Component* comp, void* windowRef);
 void* attachComponentToWindowRef (Component* comp, void* windowRef)
 {
     JUCE_AUTORELEASEPOOL
@@ -166,6 +168,7 @@ void* attachComponentToWindowRef (Component* comp, void* windowRef)
   #endif
 }
 
+void detachComponentFromWindowRef (Component* comp, void* nsWindow);
 void detachComponentFromWindowRef (Component* comp, void* nsWindow)
 {
    #if JUCE_64BIT
@@ -206,13 +209,13 @@ void detachComponentFromWindowRef (Component* comp, void* nsWindow)
    #endif
 }
 
+void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth, int newHeight, const PluginHostType& host);
 void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth, int newHeight, const PluginHostType& host)
 {
     JUCE_AUTORELEASEPOOL
 
    #if JUCE_64BIT
-    NSView* hostView = (NSView*) nsWindow;
-    if (hostView != nil)
+    if (NSView* hostView = (NSView*) nsWindow)
     {
         // xxx is this necessary, or do the hosts detect a change in the child view and do this automatically?
         [hostView setFrameSize: NSMakeSize ([hostView frame].size.width + (newWidth - component->getWidth()),
@@ -220,9 +223,8 @@ void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth
     }
    #else
 
-    HIViewRef dummyView = (HIViewRef) (void*) (pointer_sized_int)
-                            component->getProperties() ["dummyViewRef"].toString().getHexValue64();
-    if (dummyView != 0)
+    if (HIViewRef dummyView = (HIViewRef) (void*) (pointer_sized_int)
+                                 component->getProperties() ["dummyViewRef"].toString().getHexValue64())
     {
         HIRect frameRect;
         HIViewGetFrame (dummyView, &frameRect);
@@ -233,6 +235,7 @@ void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth
    #endif
 }
 
+void checkWindowVisibility (void* nsWindow, Component* comp);
 void checkWindowVisibility (void* nsWindow, Component* comp)
 {
    #if ! JUCE_64BIT
@@ -240,6 +243,7 @@ void checkWindowVisibility (void* nsWindow, Component* comp)
    #endif
 }
 
+bool forwardCurrentKeyEventToHost (Component* comp);
 bool forwardCurrentKeyEventToHost (Component* comp)
 {
    #if JUCE_64BIT
