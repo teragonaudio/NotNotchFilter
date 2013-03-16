@@ -7,130 +7,16 @@
 
 //==============================================================================
 NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() {
-  baseFrequency = kNotNotchFilterFrequencyDefault;
-  resonance = kNotNotchFilterResonanceDefault;
-  valleySize = kNotNotchFilterValleySizeDefault;
-  recalculateCoefficients(getSampleRate(), baseFrequency, resonance);
+  parameters.add(new FrequencyParameter("Frequency", kFrequencyMin, kFrequencyMax, kFrequencyDefault));
+  parameters.add(new FloatParameter("Resonance", kResonanceMin, kResonanceMax, kResonanceDefault));
+  parameters.add(new FrequencyParameter("Valley Size", kValleySizeMin, kValleySizeMax, kValleySizeDefault));
 }
 
 NotNotchFilterAudioProcessor::~NotNotchFilterAudioProcessor() {
 }
 
 //==============================================================================
-const String NotNotchFilterAudioProcessor::getName() const {
-  return JucePlugin_Name;
-}
-
-int NotNotchFilterAudioProcessor::getNumParameters() {
-  return kNotNotchFilterParamNumParams;
-}
-
-static float scaleFrequencyToParameterRange(float value, float max, float min) {
-  return (logf(value) - logf(min)) / (logf(max) - logf(min));
-}
-
-float NotNotchFilterAudioProcessor::getMaxFilterFrequency() const {
-  return (float)(getSampleRate() / 2.0f) - 10.0f;
-}
-
-float NotNotchFilterAudioProcessor::getParameter(int index) {
-  switch(index) {
-    case kNotNotchFilterParamFilterFrequency:
-      return scaleFrequencyToParameterRange(baseFrequency, kNotNotchFilterFrequencyMax, kNotNotchFilterFrequencyMin);
-    case kNotNotchFilterParamResonance:
-      return (resonance - kNotNotchFilterResonanceMin) / (kNotNotchFilterResonanceMax - kNotNotchFilterResonanceMin);
-    case kNotNotchFilterParamValleySize:
-      return scaleFrequencyToParameterRange(valleySize, kNotNotchFilterValleySizeMax, kNotNotchFilterValleySizeMin);
-    default:
-      return 0.0f;
-  }
-}
-
-static float scaleParameterRangeToFrequency(float value, float max, float min) {
-  float frequency = expf(value * (logf(max) - logf(min)) + logf(min));
-  if(frequency > max) {
-    return max;
-  }
-  else if(frequency < min) {
-    return min;
-  }
-  else {
-    return frequency;
-  }
-}
-
-void NotNotchFilterAudioProcessor::setParameter(int index, float newValue) {
-  switch(index) {
-    case kNotNotchFilterParamFilterFrequency:
-      baseFrequency = scaleParameterRangeToFrequency(newValue, kNotNotchFilterFrequencyMax, kNotNotchFilterFrequencyMin);
-      break;
-    case kNotNotchFilterParamResonance:
-      resonance = newValue * (kNotNotchFilterResonanceMax - kNotNotchFilterResonanceMin) + kNotNotchFilterResonanceMin;
-      break;
-    case kNotNotchFilterParamValleySize:
-      valleySize = scaleParameterRangeToFrequency(newValue, kNotNotchFilterValleySizeMax, kNotNotchFilterValleySizeMin);
-      break;
-    default:
-      break;
-  }
-
-  recalculateCoefficients(getSampleRate(), baseFrequency, resonance);
-}
-
-const String NotNotchFilterAudioProcessor::getParameterName(int index) {
-  switch(index) {
-    case kNotNotchFilterParamFilterFrequency:
-      return String("Frequency");
-    case kNotNotchFilterParamResonance:
-      return String("Resonance");
-    case kNotNotchFilterParamValleySize:
-      return String("Valley Size");
-    default:
-      return String::empty;
-  }
-}
-
-const String NotNotchFilterAudioProcessor::getParameterNameForStorage(int index) {
-  switch(index) {
-    case kNotNotchFilterParamFilterFrequency:
-      return String("Frequency");
-    case kNotNotchFilterParamResonance:
-      return String("Resonance");
-    case kNotNotchFilterParamValleySize:
-      return String("ValleySize");
-    default:
-      return String::empty;
-  }
-}
-
-static const String getParameterTextForFrequency(const float frequency) {
-  String outText;
-  if(frequency > 1000) {
-    outText = String(frequency / 1000.0f, PARAM_TEXT_NUM_DECIMAL_PLACES);
-    outText.append(String(" kHz"), 4);
-  }
-  else {
-    outText = String(frequency, PARAM_TEXT_NUM_DECIMAL_PLACES);
-    outText.append(String(" Hz"), 3);
-  }
-  return outText;
-}
-
-const String NotNotchFilterAudioProcessor::getParameterText(int index) {
-  switch(index) {
-    case kNotNotchFilterParamFilterFrequency:
-      return getParameterTextForFrequency(baseFrequency);
-    case kNotNotchFilterParamResonance:
-      return String(resonance, PARAM_TEXT_NUM_DECIMAL_PLACES);
-    case kNotNotchFilterParamValleySize:
-      return getParameterTextForFrequency(valleySize);
-    default:
-      return String::empty;
-  }
-}
-
-//==============================================================================
-void NotNotchFilterAudioProcessor::resetLastIOData() {
+void NotNotchFilterAudioProcessor::reset() {
   for(int i = 0; i < 2; i++) {
     hiLastInput1[i] = 0.0f;
     hiLastInput2[i] = 0.0f;
@@ -146,10 +32,15 @@ void NotNotchFilterAudioProcessor::resetLastIOData() {
   }
 }
 
-void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRate, const float baseFrequency, const float filterResonance) {
-  loFrequency = baseFrequency + valleySize;
-  if(loFrequency > getMaxFilterFrequency()) {
-    loFrequency = getMaxFilterFrequency();
+void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+  reset();
+  float baseFrequency = parameters["Frequency"]->getValue();
+  float filterResonance = parameters["Resonance"]->getValue();
+  maxFilterFrequency = (float)(getSampleRate() / 2.0f) - 10.0f;
+
+  loFrequency = baseFrequency + parameters["Valley Size"]->getValue();
+  if(loFrequency > maxFilterFrequency) {
+    loFrequency = maxFilterFrequency;
   }
 
   const float hiCoeffConstant = (float)tan(M_PI * loFrequency / sampleRate);
@@ -172,19 +63,12 @@ void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRa
   loCoeffB2 = loCoeffA1 * (1.0f - (filterResonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
 }
 
-void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
-  resetLastIOData();
-  recalculateCoefficients(sampleRate, baseFrequency, resonance);
-}
-
 void NotNotchFilterAudioProcessor::releaseResources() {
-  // When playback stops, you can use this as an opportunity to free up any
-  // spare memory, etc.
 }
 
 void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) {
   // Pass audio through if valley size is set to min. We want to have a clean signal when the filter is off.
-  if(valleySize > kNotNotchFilterValleySizeMin) {
+  if(parameters["Valley Size"]->getValue() > kValleySizeMin) {
     for(int channel = 0; channel < getNumInputChannels(); ++channel) {
       float *channelData = buffer.getSampleData(channel);
       float hiOutput, loOutput;
@@ -230,24 +114,24 @@ void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiB
 
 //==============================================================================
 void NotNotchFilterAudioProcessor::getStateInformation(MemoryBlock& destData) {
-  // You should use this method to store your parameters in the memory block.
-  // You could do that either as raw data, or use the XML or ValueTree classes
-  // as intermediaries to make it easy to save and load complex data.
-  XmlElement xml("NotNotchFilterStorage");
-  for(int i = 0; i < kNotNotchFilterParamNumParams; i++) {
-    xml.setAttribute(getParameterNameForStorage(i), getParameter(i));
+  XmlElement xml(getName());
+  for (int i = 0; i < parameters.size(); i++) {
+    PluginParameter *parameter = parameters[i];
+    xml.setAttribute(parameter->getSafeName().c_str(), parameter->getValue());
   }
   copyXmlToBinary(xml, destData);
 }
 
 void NotNotchFilterAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
-  // You should use this method to restore your parameters from this memory block,
-  // whose contents will have been created by the getStateInformation() call.
   ScopedPointer<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-  if(xmlState != 0 && xmlState->hasTagName("NotNotchFilterStorage")) {
-    for(int i = 0; i < kNotNotchFilterParamNumParams; i++) {
-      setParameter(i, xmlState->getDoubleAttribute(getParameterNameForStorage(i)));
+  if (xmlState != 0 && xmlState->hasTagName(getName())) {
+    for (int i = 0; i < parameters.size(); i++) {
+      PluginParameter *parameter = parameters[i];
+      if (xmlState->hasAttribute(parameter->getSafeName().c_str())) {
+        parameter->setValue(xmlState->getDoubleAttribute(parameter->getSafeName().c_str()));
+      }
     }
+    reset();
   }
 }
 

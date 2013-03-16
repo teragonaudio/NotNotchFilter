@@ -2,25 +2,28 @@
 #define __PLUGINPROCESSOR_H_A4C75B3B__
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "PluginParameters.h"
 
 typedef enum {
-  kNotNotchFilterParamFilterFrequency,
-  kNotNotchFilterParamResonance,
-  kNotNotchFilterParamValleySize,
-  kNotNotchFilterParamNumParams
-} kNotNotchFilterParams;
+  kParamFilterFrequency,
+  kParamResonance,
+  kParamValleySize,
+  kParamNumParams
+} kParams;
 
-static const float kNotNotchFilterFrequencyMin = 400.0f;
-static const float kNotNotchFilterFrequencyDefault = kNotNotchFilterFrequencyMin;
-static const float kNotNotchFilterFrequencyMax = 1400.0f;
-static const float kNotNotchFilterResonanceMin = 0.1f;
-static const float kNotNotchFilterResonanceDefault = 1.0f;
-static const float kNotNotchFilterResonanceMax = sqrtf(2.0);
-static const float kNotNotchFilterValleySizeMin = 0.1f;
-static const float kNotNotchFilterValleySizeMax = 20000.0f;
-static const float kNotNotchFilterValleySizeDefault = 0.1f;
+static const float kFrequencyMin = 400.0f;
+static const float kFrequencyDefault = kFrequencyMin;
+static const float kFrequencyMax = 1400.0f;
+static const float kResonanceMin = 0.1f;
+static const float kResonanceDefault = 1.0f;
+static const float kResonanceMax = sqrtf(2.0);
+static const float kValleySizeMin = 0.1f;
+static const float kValleySizeMax = 20000.0f;
+static const float kValleySizeDefault = 0.1f;
 
 #define PARAM_TEXT_NUM_DECIMAL_PLACES 2
+
+using namespace teragon;
 
 //==============================================================================
 class NotNotchFilterAudioProcessor  : public AudioProcessor {
@@ -28,77 +31,58 @@ public:
 
   //==============================================================================
   NotNotchFilterAudioProcessor();
-
   ~NotNotchFilterAudioProcessor();
 
   //==============================================================================
   void prepareToPlay(double sampleRate, int samplesPerBlock);
-
   void releaseResources();
+  void reset();
 
   void processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
   //==============================================================================
   AudioProcessorEditor *createEditor() { return NULL; }
-
   bool hasEditor() const { return false; };
 
   //==============================================================================
-  const String getName() const;
-
-  int getNumParameters();
-
-  float getMaxFilterFrequency() const;
-
-  float getParameter(int index);
-
-  void setParameter(int index, float newValue);
-
-  const String getParameterName(int index);
-
-  const String getParameterNameForStorage(int index);
-
-  const String getParameterText(int index);
+  const String getName() const { return JucePlugin_Name; }
+  int getNumParameters() { return parameters.size(); }
+  float getParameter(int index) { return parameters[index]->getScaledValue(); }
+  void setParameter(int index, float newValue) { parameters[index]->setScaledValue(newValue); }
+  const String getParameterName(int index) { return parameters[index]->getName().c_str(); }
+  const String getParameterText(int index) { return parameters[index]->getDisplayText().c_str(); }
 
   const String getInputChannelName(int channelIndex) const { return String(channelIndex + 1); };
-
   const String getOutputChannelName(int channelIndex) const { return String(channelIndex + 1); };
 
   bool isInputChannelStereoPair(int index) const { return true; };
-
   bool isOutputChannelStereoPair(int index) const { return true; };
 
   bool acceptsMidi() const { return false; };
-
   bool producesMidi() const { return false; };
+  bool silenceInProducesSilenceOut() const { return true; }
+  double getTailLengthSeconds() const { return 0.0; }
 
   //==============================================================================
   int getNumPrograms() { return 0; };
-
   int getCurrentProgram() { return 0; };
-
   void setCurrentProgram(int index) {};
-
   const String getProgramName(int index) { return String::empty; };
-
   void changeProgramName(int index, const String& newName) {};
 
   //==============================================================================
   void getStateInformation(MemoryBlock& destData);
-
   void setStateInformation(const void *data, int sizeInBytes);
 
 private:
-  void resetLastIOData();
-  void recalculateCoefficients(const double sampleRate, const float filterFrequency, const float filterResonance);
   void processHiFilter(float *channelData, const int channel, const int numSamples);
   void processLoFilter(float *channelData, const int channel, const int numSamples);
 
-  float baseFrequency;
+  PluginParameterSet parameters;
+
+  float maxFilterFrequency;
   float loFrequency;
   float hiFrequency;
-  float resonance;
-  float valleySize;
 
   float hiLastInput1[2], hiLastInput2[2], hiLastInput3[2];
   float loLastInput1[2], loLastInput2[2], loLastInput3[2];
