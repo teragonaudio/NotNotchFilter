@@ -50,6 +50,9 @@ public:
     void paint (Graphics& g);
     void resized();
 
+    // Binary resources:
+    static const char* background_png;
+    static const int background_pngSize;
 
 
 private:
@@ -60,8 +63,9 @@ private:
 
     //==============================================================================
     ScopedPointer<teragon::ImageKnob> frequencyKnob;
-    ScopedPointer<teragon::ImageKnob> frequencyKnob2;
-    ScopedPointer<teragon::ImageKnob> frequencyKnob3;
+    ScopedPointer<teragon::ImageKnob> resonanceKnob;
+    ScopedPointer<teragon::ImageKnob> valleySizeKnob;
+    Image cachedImage_background_png;
 
 
     //==============================================================================

@@ -21,7 +21,7 @@ static const float kResonanceDefault = 1.0f;
 static const float kResonanceMax = sqrtf(2.0);
 static const float kValleySizeMin = 0.1f;
 static const float kValleySizeMax = 20000.0f;
-static const float kValleySizeDefault = 0.1f;
+static const float kValleySizeDefault = kValleySizeMin;
 
 #define PARAM_TEXT_NUM_DECIMAL_PLACES 2
 
