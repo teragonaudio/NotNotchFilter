@@ -13,6 +13,7 @@ BEGIN
   BEGIN
     BLOCK "040904E4"
     BEGIN
+      VALUE "CompanyName",  "Teragon Audio\0"
       VALUE "FileDescription",  "NotNotchFilter\0"
       VALUE "FileVersion",  "1.0.0\0"
       VALUE "ProductName",  "NotNotchFilter\0"
