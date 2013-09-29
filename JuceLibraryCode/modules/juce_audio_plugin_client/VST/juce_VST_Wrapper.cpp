@@ -1,24 +1,23 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
@@ -41,6 +40,13 @@
  #undef STRICT
  #define STRICT 1
  #include <windows.h>
+
+ #ifdef __MINGW32__
+  struct MOUSEHOOKSTRUCTEX  : public MOUSEHOOKSTRUCT
+  {
+     DWORD mouseData;
+  };
+ #endif
 #elif defined (LINUX)
  #include <X11/Xlib.h>
  #include <X11/Xutil.h>
@@ -109,11 +115,14 @@ namespace juce
 {
  #if JUCE_MAC
   extern void initialiseMac();
-  extern void* attachComponentToWindowRef (Component* component, void* windowRef);
-  extern void detachComponentFromWindowRef (Component* component, void* nsWindow);
-  extern void setNativeHostWindowSize (void* nsWindow, Component* editorComp, int newWidth, int newHeight, const PluginHostType& host);
-  extern void checkWindowVisibility (void* nsWindow, Component* component);
-  extern bool forwardCurrentKeyEventToHost (Component* component);
+  extern void* attachComponentToWindowRef (Component*, void* windowRef);
+  extern void detachComponentFromWindowRef (Component*, void* nsWindow);
+  extern void setNativeHostWindowSize (void* nsWindow, Component*, int newWidth, int newHeight);
+  extern void checkWindowVisibility (void* nsWindow, Component*);
+  extern bool forwardCurrentKeyEventToHost (Component*);
+ #if ! JUCE_64BIT
+  extern void updateEditorCompBounds (Component*);
+ #endif
  #endif
 
  #if JUCE_LINUX
@@ -223,12 +232,12 @@ public:
     ~SharedMessageThread()
     {
         signalThreadShouldExit();
-        JUCEApplication::quit();
+        JUCEApplicationBase::quit();
         waitForThreadToExit (5000);
         clearSingletonInstance();
     }
 
-    void run()
+    void run() override
     {
         initialiseJuce_GUI();
         initialised = true;
@@ -302,38 +311,39 @@ public:
     ~JuceVSTWrapper()
     {
         JUCE_AUTORELEASEPOOL
-
         {
-           #if JUCE_LINUX
-            MessageManagerLock mmLock;
-           #endif
-            stopTimer();
-            deleteEditor (false);
+            {
+               #if JUCE_LINUX
+                MessageManagerLock mmLock;
+               #endif
+                stopTimer();
+                deleteEditor (false);
 
-            hasShutdown = true;
+                hasShutdown = true;
 
-            delete filter;
-            filter = nullptr;
+                delete filter;
+                filter = nullptr;
 
-            jassert (editorComp == 0);
+                jassert (editorComp == 0);
 
-            channels.free();
-            deleteTempChannels();
+                channels.free();
+                deleteTempChannels();
 
-            jassert (activePlugins.contains (this));
-            activePlugins.removeFirstMatchingValue (this);
-        }
+                jassert (activePlugins.contains (this));
+                activePlugins.removeFirstMatchingValue (this);
+            }
 
-        if (activePlugins.size() == 0)
-        {
-           #if JUCE_LINUX
-            SharedMessageThread::deleteInstance();
-           #endif
-            shutdownJuce_GUI();
+            if (activePlugins.size() == 0)
+            {
+               #if JUCE_LINUX
+                SharedMessageThread::deleteInstance();
+               #endif
+                shutdownJuce_GUI();
 
-           #if JUCE_WINDOWS
-            messageThreadIsDefinitelyCorrect = false;
-           #endif
+               #if JUCE_WINDOWS
+                messageThreadIsDefinitelyCorrect = false;
+               #endif
+            }
         }
     }
 
@@ -985,7 +995,7 @@ public:
         return 0;
     }
 
-    void timerCallback()
+    void timerCallback() override
     {
         if (shouldDeleteEditor)
         {
@@ -1035,12 +1045,14 @@ public:
             recursionCheck = true;
 
             JUCE_AUTORELEASEPOOL
-            Timer::callPendingTimersSynchronously();
+            {
+                Timer::callPendingTimersSynchronously();
 
-            for (int i = ComponentPeer::getNumPeers(); --i >= 0;)
-                ComponentPeer::getPeer (i)->performAnyPendingRepaintsNow();
+                for (int i = ComponentPeer::getNumPeers(); --i >= 0;)
+                    ComponentPeer::getPeer (i)->performAnyPendingRepaintsNow();
 
-            recursionCheck = false;
+                recursionCheck = false;
+            }
         }
     }
 
@@ -1071,47 +1083,49 @@ public:
     void deleteEditor (bool canDeleteLaterIfModal)
     {
         JUCE_AUTORELEASEPOOL
-        PopupMenu::dismissAllActiveMenus();
-
-        jassert (! recursionCheck);
-        recursionCheck = true;
-
-        if (editorComp != nullptr)
         {
-            if (Component* const modalComponent = Component::getCurrentlyModalComponent())
-            {
-                modalComponent->exitModalState (0);
+            PopupMenu::dismissAllActiveMenus();
 
-                if (canDeleteLaterIfModal)
+            jassert (! recursionCheck);
+            recursionCheck = true;
+
+            if (editorComp != nullptr)
+            {
+                if (Component* const modalComponent = Component::getCurrentlyModalComponent())
                 {
-                    shouldDeleteEditor = true;
-                    recursionCheck = false;
-                    return;
+                    modalComponent->exitModalState (0);
+
+                    if (canDeleteLaterIfModal)
+                    {
+                        shouldDeleteEditor = true;
+                        recursionCheck = false;
+                        return;
+                    }
                 }
+
+               #if JUCE_MAC
+                if (hostWindow != 0)
+                {
+                    detachComponentFromWindowRef (editorComp, hostWindow);
+                    hostWindow = 0;
+                }
+               #endif
+
+                filter->editorBeingDeleted (editorComp->getEditorComp());
+
+                editorComp = nullptr;
+
+                // there's some kind of component currently modal, but the host
+                // is trying to delete our plugin. You should try to avoid this happening..
+                jassert (Component::getCurrentlyModalComponent() == nullptr);
             }
 
-           #if JUCE_MAC
-            if (hostWindow != 0)
-            {
-                detachComponentFromWindowRef (editorComp, hostWindow);
-                hostWindow = 0;
-            }
+           #if JUCE_LINUX
+            hostWindow = 0;
            #endif
 
-            filter->editorBeingDeleted (editorComp->getEditorComp());
-
-            editorComp = nullptr;
-
-            // there's some kind of component currently modal, but the host
-            // is trying to delete our plugin. You should try to avoid this happening..
-            jassert (Component::getCurrentlyModalComponent() == nullptr);
+            recursionCheck = false;
         }
-
-       #if JUCE_LINUX
-        hostWindow = 0;
-       #endif
-
-        recursionCheck = false;
     }
 
     VstIntPtr dispatcher (VstInt32 opCode, VstInt32 index, VstIntPtr value, void* ptr, float opt)
@@ -1195,7 +1209,7 @@ public:
             {
                 // some hosts don't support the sizeWindow call, so do it manually..
                #if JUCE_MAC
-                setNativeHostWindowSize (hostWindow, editorComp, newWidth, newHeight, getHostType());
+                setNativeHostWindowSize (hostWindow, editorComp, newWidth, newHeight);
 
                #elif JUCE_LINUX
                 // (Currently, all linux hosts support sizeWindow, so this should never need to happen)
@@ -1292,9 +1306,9 @@ public:
                                  // have been transferred to another parent which takes over ownership.
         }
 
-        void paint (Graphics&) {}
+        void paint (Graphics&) override {}
 
-        void paintOverChildren (Graphics&)
+        void paintOverChildren (Graphics&) override
         {
             // this causes an async call to masterIdle() to help
             // creaky old DAWs like Nuendo repaint themselves while we're
@@ -1304,7 +1318,7 @@ public:
         }
 
        #if JUCE_MAC
-        bool keyPressed (const KeyPress&)
+        bool keyPressed (const KeyPress&) override
         {
             // If we have an unused keypress, move the key-focus to a host window
             // and re-inject the event..
@@ -1314,16 +1328,20 @@ public:
 
         AudioProcessorEditor* getEditorComp() const
         {
-            return dynamic_cast <AudioProcessorEditor*> (getChildComponent (0));
+            return dynamic_cast<AudioProcessorEditor*> (getChildComponent(0));
         }
 
-        void resized()
+        void resized() override
         {
             if (Component* const editor = getChildComponent(0))
                 editor->setBounds (getLocalBounds());
+
+           #if JUCE_MAC && ! JUCE_64BIT
+            updateEditorCompBounds (this);
+           #endif
         }
 
-        void childBoundsChanged (Component* child)
+        void childBoundsChanged (Component* child) override
         {
             child->setTopLeftPosition (0, 0);
 
@@ -1347,24 +1365,22 @@ public:
            #endif
         }
 
-        void handleAsyncUpdate()
+        void handleAsyncUpdate() override
         {
             wrapper.tryMasterIdle();
         }
 
        #if JUCE_WINDOWS
-        void mouseDown (const MouseEvent&)
+        void mouseDown (const MouseEvent&) override
         {
             broughtToFront();
         }
 
-        void broughtToFront()
+        void broughtToFront() override
         {
             // for hosts like nuendo, need to also pop the MDI container to the
             // front when our comp is clicked on.
-            HWND parent = findMDIParentOf ((HWND) getWindowHandle());
-
-            if (parent != 0)
+            if (HWND parent = findMDIParentOf ((HWND) getWindowHandle()))
                 SetWindowPos (parent, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }
        #endif
@@ -1414,10 +1430,12 @@ private:
 
     //==============================================================================
    #if JUCE_WINDOWS
-    // Workarounds for Wavelab's happy-go-lucky use of threads.
+    // Workarounds for hosts which attempt to open editor windows on a non-GUI thread.. (Grrrr...)
     static void checkWhetherMessageThreadIsCorrect()
     {
-        if (getHostType().isWavelab() || getHostType().isCubaseBridged())
+        const PluginHostType host (getHostType());
+
+        if (host.isWavelab() || host.isCubaseBridged() || host.isPremiere())
         {
             if (! messageThreadIsDefinitelyCorrect)
             {
@@ -1428,7 +1446,7 @@ private:
                 public:
                     MessageThreadCallback (bool& tr) : triggered (tr) {}
 
-                    void messageCallback()
+                    void messageCallback() override
                     {
                         triggered = true;
                     }
@@ -1466,23 +1484,25 @@ namespace
     AEffect* pluginEntryPoint (audioMasterCallback audioMaster)
     {
         JUCE_AUTORELEASEPOOL
-        initialiseJuce_GUI();
-
-        try
         {
-            if (audioMaster (0, audioMasterVersion, 0, 0, 0, 0) != 0)
-            {
-               #if JUCE_LINUX
-                MessageManagerLock mmLock;
-               #endif
+            initialiseJuce_GUI();
 
-                AudioProcessor* const filter = createPluginFilterOfType (AudioProcessor::wrapperType_VST);
-                JuceVSTWrapper* const wrapper = new JuceVSTWrapper (audioMaster, filter);
-                return wrapper->getAeffect();
+            try
+            {
+                if (audioMaster (0, audioMasterVersion, 0, 0, 0, 0) != 0)
+                {
+                   #if JUCE_LINUX
+                    MessageManagerLock mmLock;
+                   #endif
+
+                    AudioProcessor* const filter = createPluginFilterOfType (AudioProcessor::wrapperType_VST);
+                    JuceVSTWrapper* const wrapper = new JuceVSTWrapper (audioMaster, filter);
+                    return wrapper->getAeffect();
+                }
             }
+            catch (...)
+            {}
         }
-        catch (...)
-        {}
 
         return nullptr;
     }

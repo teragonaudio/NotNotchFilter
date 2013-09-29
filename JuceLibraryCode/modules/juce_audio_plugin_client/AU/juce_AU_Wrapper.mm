@@ -1,24 +1,23 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
@@ -46,6 +45,7 @@
 #include <AudioUnit/AUCocoaUIView.h>
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioUnitUtilities.h>
+#include <CoreMIDI/MIDIServices.h>
 
 #if JUCE_SUPPORT_CARBON
  #define Point CarbonDummyPointName
@@ -96,10 +96,29 @@ static const short channelConfigs[][2] = { JucePlugin_PreferredChannelConfigurat
 static const int numChannelConfigs = sizeof (channelConfigs) / sizeof (*channelConfigs);
 
 #if JucePlugin_IsSynth
- typedef MusicDeviceBase  JuceAUBaseClass;
+class JuceAUBaseClass   : public MusicDeviceBase
+{
+public:
+    JuceAUBaseClass (AudioComponentInstance comp)  : MusicDeviceBase (comp, 0, 1) {}
+};
 #else
- typedef AUMIDIEffectBase JuceAUBaseClass;
+class JuceAUBaseClass   : public AUMIDIEffectBase
+{
+public:
+    JuceAUBaseClass (AudioComponentInstance comp)  : AUMIDIEffectBase (comp, false) {}
+
+    OSStatus MIDIEvent (UInt32 inStatus, UInt32 inData1, UInt32 inData2, UInt32 inOffsetSampleFrame) override
+    {
+        return AUMIDIBase::MIDIEvent (inStatus, inData1, inData2, inOffsetSampleFrame);
+    }
+
+    OSStatus SysEx (const UInt8* inData, UInt32 inLength) override
+    {
+        return AUMIDIBase::SysEx (inData, inLength);
+    }
+};
 #endif
+
 
 // This macro can be set if you need to override this internal name for some reason..
 #ifndef JUCE_STATE_DICTIONARY_KEY
@@ -115,11 +134,7 @@ class JuceAU   : public JuceAUBaseClass,
 public:
     //==============================================================================
     JuceAU (AudioUnit component)
-      #if JucePlugin_IsSynth
-        : MusicDeviceBase (component, 0, 1),
-      #else
-        : AUMIDIEffectBase (component),
-      #endif
+        : JuceAUBaseClass (component),
           bufferSpace (2, 16),
           prepared (false)
     {
@@ -146,10 +161,12 @@ public:
         auEvent.mArgument.mParameter.mScope = kAudioUnitScope_Global;
         auEvent.mArgument.mParameter.mElement = 0;
 
+        zerostruct (midiCallback);
+
         CreateElements();
 
         CAStreamBasicDescription streamDescription;
-        streamDescription.mSampleRate = GetSampleRate();
+        streamDescription.mSampleRate = getSampleRate();
         streamDescription.SetCanonical ((UInt32) channelConfigs[0][1], false);
         Outputs().GetIOElement(0)->SetStreamFormat (streamDescription);
 
@@ -188,30 +205,28 @@ public:
                                      AudioUnitScope inScope,
                                      AudioUnitElement inElement,
                                      UInt32& outDataSize,
-                                     Boolean& outWritable)
+                                     Boolean& outWritable) override
     {
         if (inScope == kAudioUnitScope_Global)
         {
-            if (inID == juceFilterObjectPropertyID)
+            switch (inID)
             {
+            case juceFilterObjectPropertyID:
                 outWritable = false;
                 outDataSize = sizeof (void*) * 2;
                 return noErr;
-            }
-            else if (inID == kAudioUnitProperty_OfflineRender)
-            {
+
+            case kAudioUnitProperty_OfflineRender:
                 outWritable = true;
                 outDataSize = sizeof (UInt32);
                 return noErr;
-            }
-            else if (inID == kMusicDeviceProperty_InstrumentCount)
-            {
+
+            case kMusicDeviceProperty_InstrumentCount:
                 outDataSize = sizeof (UInt32);
                 outWritable = false;
                 return noErr;
-            }
-            else if (inID == kAudioUnitProperty_CocoaUI)
-            {
+
+            case kAudioUnitProperty_CocoaUI:
                #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
                 // (On 10.4, there's a random obj-c dispatching crash when trying to load a cocoa UI)
                 if (SystemStats::getOperatingSystemType() >= SystemStats::MacOSX_10_5)
@@ -221,6 +236,22 @@ public:
                     outWritable = true;
                     return noErr;
                 }
+
+                break;
+
+           #if JucePlugin_ProducesMidiOutput
+            case kAudioUnitProperty_MIDIOutputCallbackInfo:
+                outDataSize = sizeof (CFArrayRef);
+                outWritable = false;
+                return noErr;
+
+            case kAudioUnitProperty_MIDIOutputCallback:
+                outDataSize = sizeof (AUMIDIOutputCallbackStruct);
+                outWritable = true;
+                return noErr;
+           #endif
+
+            default: break;
             }
         }
 
@@ -230,46 +261,61 @@ public:
     ComponentResult GetProperty (AudioUnitPropertyID inID,
                                  AudioUnitScope inScope,
                                  AudioUnitElement inElement,
-                                 void* outData)
+                                 void* outData) override
     {
         if (inScope == kAudioUnitScope_Global)
         {
-            if (inID == juceFilterObjectPropertyID)
+            switch (inID)
             {
-                ((void**) outData)[0] = (void*) static_cast <AudioProcessor*> (juceFilter);
-                ((void**) outData)[1] = (void*) this;
-                return noErr;
-            }
-            else if (inID == kAudioUnitProperty_OfflineRender)
-            {
-                *(UInt32*) outData = (juceFilter != nullptr && juceFilter->isNonRealtime()) ? 1 : 0;
-                return noErr;
-            }
-            else if (inID == kMusicDeviceProperty_InstrumentCount)
-            {
-                *(UInt32*) outData = 1;
-                return noErr;
-            }
-            else if (inID == kAudioUnitProperty_CocoaUI)
-            {
-               #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-                // (On 10.4, there's a random obj-c dispatching crash when trying to load a cocoa UI)
-                if (SystemStats::getOperatingSystemType() >= SystemStats::MacOSX_10_5)
-               #endif
+                case juceFilterObjectPropertyID:
+                    ((void**) outData)[0] = (void*) static_cast <AudioProcessor*> (juceFilter);
+                    ((void**) outData)[1] = (void*) this;
+                    return noErr;
+
+                case kAudioUnitProperty_OfflineRender:
+                    *(UInt32*) outData = (juceFilter != nullptr && juceFilter->isNonRealtime()) ? 1 : 0;
+                    return noErr;
+
+                case kMusicDeviceProperty_InstrumentCount:
+                    *(UInt32*) outData = 1;
+                    return noErr;
+
+                case kAudioUnitProperty_CocoaUI:
+                   #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+                    // (On 10.4, there's a random obj-c dispatching crash when trying to load a cocoa UI)
+                    if (SystemStats::getOperatingSystemType() >= SystemStats::MacOSX_10_5)
+                   #endif
+                    {
+                        JUCE_AUTORELEASEPOOL
+                        {
+                            static JuceUICreationClass cls;
+
+                            // (NB: this may be the host's bundle, not necessarily the component's)
+                            NSBundle* bundle = [NSBundle bundleForClass: cls.cls];
+
+                            AudioUnitCocoaViewInfo* info = static_cast <AudioUnitCocoaViewInfo*> (outData);
+                            info->mCocoaAUViewClass[0] = (CFStringRef) [juceStringToNS (class_getName (cls.cls)) retain];
+                            info->mCocoaAUViewBundleLocation = (CFURLRef) [[NSURL fileURLWithPath: [bundle bundlePath]] retain];
+                        }
+
+                        return noErr;
+                    }
+
+                    break;
+
+               #if JucePlugin_ProducesMidiOutput
+                case kAudioUnitProperty_MIDIOutputCallbackInfo:
                 {
-                    JUCE_AUTORELEASEPOOL
+                    CFStringRef strs[1];
+                    strs[0] = CFSTR ("MIDI Callback");
 
-                    static JuceUICreationClass cls;
-
-                    // (NB: this may be the host's bundle, not necessarily the component's)
-                    NSBundle* bundle = [NSBundle bundleForClass: cls.cls];
-
-                    AudioUnitCocoaViewInfo* info = static_cast <AudioUnitCocoaViewInfo*> (outData);
-                    info->mCocoaAUViewClass[0] = (CFStringRef) [juceStringToNS (class_getName (cls.cls)) retain];
-                    info->mCocoaAUViewBundleLocation = (CFURLRef) [[NSURL fileURLWithPath: [bundle bundlePath]] retain];
-
+                    CFArrayRef callbackArray = CFArrayCreate (nullptr, (const void**) strs, 1, &kCFTypeArrayCallBacks);
+                    *(CFArrayRef*) outData = callbackArray;
                     return noErr;
                 }
+               #endif
+
+                default: break;
             }
         }
 
@@ -280,20 +326,37 @@ public:
                                  AudioUnitScope inScope,
                                  AudioUnitElement inElement,
                                  const void* inData,
-                                 UInt32 inDataSize)
+                                 UInt32 inDataSize) override
     {
-        if (inScope == kAudioUnitScope_Global && inID == kAudioUnitProperty_OfflineRender)
+        if (inScope == kAudioUnitScope_Global)
         {
-            if (juceFilter != nullptr)
-                juceFilter->setNonRealtime ((*(UInt32*) inData) != 0);
+            switch (inID)
+            {
+               #if JucePlugin_ProducesMidiOutput
+                case kAudioUnitProperty_MIDIOutputCallback:
+                    if (inDataSize < sizeof (AUMIDIOutputCallbackStruct))
+                        return kAudioUnitErr_InvalidPropertyValue;
 
-            return noErr;
+                    if (AUMIDIOutputCallbackStruct* callbackStruct = (AUMIDIOutputCallbackStruct*) inData)
+                        midiCallback = *callbackStruct;
+
+                    return noErr;
+               #endif
+
+                case kAudioUnitProperty_OfflineRender:
+                    if (juceFilter != nullptr)
+                        juceFilter->setNonRealtime ((*(UInt32*) inData) != 0);
+
+                    return noErr;
+
+                default: break;
+            }
         }
 
         return JuceAUBaseClass::SetProperty (inID, inScope, inElement, inData, inDataSize);
     }
 
-    ComponentResult SaveState (CFPropertyListRef* outData)
+    ComponentResult SaveState (CFPropertyListRef* outData) override
     {
         ComponentResult err = JuceAUBaseClass::SaveState (outData);
 
@@ -320,7 +383,7 @@ public:
         return noErr;
     }
 
-    ComponentResult RestoreState (CFPropertyListRef inData)
+    ComponentResult RestoreState (CFPropertyListRef inData) override
     {
         {
             // Remove the data entry from the state to prevent the superclass loading the parameters
@@ -354,7 +417,7 @@ public:
         return noErr;
     }
 
-    UInt32 SupportedNumChannels (const AUChannelInfo** outInfo)
+    UInt32 SupportedNumChannels (const AUChannelInfo** outInfo) override
     {
         // If you hit this, then you need to add some configurations to your
         // JucePlugin_PreferredChannelConfigurations setting..
@@ -381,7 +444,7 @@ public:
     //==============================================================================
     ComponentResult GetParameterInfo (AudioUnitScope inScope,
                                       AudioUnitParameterID inParameterID,
-                                      AudioUnitParameterInfo& outParameterInfo)
+                                      AudioUnitParameterInfo& outParameterInfo) override
     {
         const int index = (int) inParameterID;
 
@@ -406,7 +469,7 @@ public:
 
             outParameterInfo.minValue = 0.0f;
             outParameterInfo.maxValue = 1.0f;
-            outParameterInfo.defaultValue = 0.0f;
+            outParameterInfo.defaultValue = juceFilter->getParameterDefaultValue (index);
             outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
 
             return noErr;
@@ -418,7 +481,7 @@ public:
     ComponentResult GetParameter (AudioUnitParameterID inID,
                                   AudioUnitScope inScope,
                                   AudioUnitElement inElement,
-                                  Float32& outValue)
+                                  Float32& outValue) override
     {
         if (inScope == kAudioUnitScope_Global && juceFilter != nullptr)
         {
@@ -433,7 +496,7 @@ public:
                                   AudioUnitScope inScope,
                                   AudioUnitElement inElement,
                                   Float32 inValue,
-                                  UInt32 inBufferOffsetInFrames)
+                                  UInt32 inBufferOffsetInFrames) override
     {
         if (inScope == kAudioUnitScope_Global && juceFilter != nullptr)
         {
@@ -445,29 +508,26 @@ public:
     }
 
     //==============================================================================
-    ComponentResult Version()                   { return JucePlugin_VersionCode; }
-    bool SupportsTail()                         { return true; }
-    Float64 GetTailTime()                       { return juceFilter->getTailLengthSeconds(); }
-    Float64 GetSampleRate()                     { return GetOutput(0)->GetStreamFormat().mSampleRate; }
+    ComponentResult Version() override                   { return JucePlugin_VersionCode; }
+    bool SupportsTail() override                         { return true; }
+    Float64 GetTailTime() override                       { return juceFilter->getTailLengthSeconds(); }
+    double getSampleRate()                               { return GetOutput(0)->GetStreamFormat().mSampleRate; }
 
-    Float64 GetLatency()
+    Float64 GetLatency() override
     {
-        jassert (GetSampleRate() > 0);
-
-        if (GetSampleRate() <= 0)
-            return 0.0;
-
-        return juceFilter->getLatencySamples() / GetSampleRate();
+        const double rate = getSampleRate();
+        jassert (rate > 0);
+        return rate > 0 ? juceFilter->getLatencySamples() / rate : 0;
     }
 
     //==============================================================================
    #if BUILD_AU_CARBON_UI
-    int GetNumCustomUIComponents()
+    int GetNumCustomUIComponents() override
     {
         return PluginHostType().isDigitalPerformer() ? 0 : 1;
     }
 
-    void GetUIComponentDescs (ComponentDescription* inDescArray)
+    void GetUIComponentDescs (ComponentDescription* inDescArray) override
     {
         inDescArray[0].componentType = kAudioUnitCarbonViewComponentType;
         inDescArray[0].componentSubType = JucePlugin_AUSubType;
@@ -478,7 +538,7 @@ public:
    #endif
 
     //==============================================================================
-    bool getCurrentPosition (AudioPlayHead::CurrentPositionInfo& info)
+    bool getCurrentPosition (AudioPlayHead::CurrentPositionInfo& info) override
     {
         info.timeSigNumerator = 0;
         info.timeSigDenominator = 0;
@@ -492,7 +552,7 @@ public:
         info.ppqLoopStart = 0;
         info.ppqLoopEnd = 0;
 
-        switch (lastSMPTETime.mType)
+        switch (lastTimeStamp.mSMPTETime.mType)
         {
             case kSMPTETimeType24:          info.frameRate = AudioPlayHead::fps24; break;
             case kSMPTETimeType25:          info.frameRate = AudioPlayHead::fps25; break;
@@ -536,7 +596,7 @@ public:
         {
             info.isPlaying = playing;
             info.timeInSamples = (int64) outCurrentSampleInTimeLine;
-            info.timeInSeconds = outCurrentSampleInTimeLine / GetSampleRate();
+            info.timeInSeconds = outCurrentSampleInTimeLine / getSampleRate();
         }
 
         return true;
@@ -572,7 +632,7 @@ public:
         PropertyChanged (kAudioUnitProperty_Latency, kAudioUnitScope_Global, 0);
     }
 
-    bool StreamFormatWritable (AudioUnitScope, AudioUnitElement)
+    bool StreamFormatWritable (AudioUnitScope, AudioUnitElement) override
     {
         return ! IsInitialized();
     }
@@ -580,10 +640,10 @@ public:
     // (these two slightly different versions are because the definition changed between 10.4 and 10.5)
     ComponentResult StartNote (MusicDeviceInstrumentID, MusicDeviceGroupID, NoteInstanceID&, UInt32, const MusicDeviceNoteParams&) { return noErr; }
     ComponentResult StartNote (MusicDeviceInstrumentID, MusicDeviceGroupID, NoteInstanceID*, UInt32, const MusicDeviceNoteParams&) { return noErr; }
-    ComponentResult StopNote (MusicDeviceGroupID, NoteInstanceID, UInt32)   { return noErr; }
+    ComponentResult StopNote (MusicDeviceGroupID, NoteInstanceID, UInt32) override   { return noErr; }
 
     //==============================================================================
-    ComponentResult Initialize()
+    ComponentResult Initialize() override
     {
        #if ! JucePlugin_IsSynth
         const int numIns  = GetInput(0)  != 0 ? (int) GetInput(0)->GetStreamFormat().mChannelsPerFrame : 0;
@@ -608,7 +668,7 @@ public:
         return noErr;
     }
 
-    void Cleanup()
+    void Cleanup() override
     {
         JuceAUBaseClass::Cleanup();
 
@@ -621,7 +681,7 @@ public:
         prepared = false;
     }
 
-    ComponentResult Reset (AudioUnitScope inScope, AudioUnitElement inElement)
+    ComponentResult Reset (AudioUnitScope inScope, AudioUnitElement inElement) override
     {
         if (! prepared)
             prepareToPlay();
@@ -643,13 +703,13 @@ public:
                   0,
                  #endif
                   (int) GetOutput(0)->GetStreamFormat().mChannelsPerFrame,
-                  GetSampleRate(),
+                  getSampleRate(),
                   (int) GetMaxFramesPerSlice());
 
             bufferSpace.setSize (juceFilter->getNumInputChannels() + juceFilter->getNumOutputChannels(),
                                  (int) GetMaxFramesPerSlice() + 32);
 
-            juceFilter->prepareToPlay (GetSampleRate(), (int) GetMaxFramesPerSlice());
+            juceFilter->prepareToPlay (getSampleRate(), (int) GetMaxFramesPerSlice());
 
             midiEvents.ensureSize (2048);
             midiEvents.clear();
@@ -665,9 +725,9 @@ public:
 
     ComponentResult Render (AudioUnitRenderActionFlags &ioActionFlags,
                             const AudioTimeStamp& inTimeStamp,
-                            UInt32 nFrames)
+                            UInt32 nFrames) override
     {
-        lastSMPTETime = inTimeStamp.mSMPTETime;
+        lastTimeStamp = inTimeStamp;
 
        #if ! JucePlugin_IsSynth
         return JuceAUBaseClass::Render (ioActionFlags, inTimeStamp, nFrames);
@@ -683,7 +743,7 @@ public:
     OSStatus ProcessBufferLists (AudioUnitRenderActionFlags& ioActionFlags,
                                  const AudioBufferList& inBuffer,
                                  AudioBufferList& outBuffer,
-                                 UInt32 numSamples)
+                                 UInt32 numSamples) override
     {
         if (juceFilter != nullptr)
         {
@@ -792,23 +852,40 @@ public:
             if (! midiEvents.isEmpty())
             {
                #if JucePlugin_ProducesMidiOutput
-                const juce::uint8* midiEventData;
-                int midiEventSize, midiEventPosition;
-                MidiBuffer::Iterator i (midiEvents);
-
-                while (i.getNextEvent (midiEventData, midiEventSize, midiEventPosition))
+                if (midiCallback.midiOutputCallback != nullptr)
                 {
-                    jassert (isPositiveAndBelow (midiEventPosition, (int) numSamples));
+                    UInt32 numPackets = 0;
+                    size_t dataSize = 0;
 
+                    const juce::uint8* midiEventData;
+                    int midiEventSize, midiEventPosition;
 
+                    for (MidiBuffer::Iterator i (midiEvents); i.getNextEvent (midiEventData, midiEventSize, midiEventPosition);)
+                    {
+                        jassert (isPositiveAndBelow (midiEventPosition, (int) numSamples));
+                        dataSize += (size_t) midiEventSize;
+                        ++numPackets;
+                    }
 
-                    //xxx
+                    const size_t packetMembersSize     = sizeof (MIDIPacket)     - sizeof (MIDIPacket::data);
+                    const size_t packetListMembersSize = sizeof (MIDIPacketList) - sizeof (MIDIPacket::data);
+
+                    HeapBlock<MIDIPacketList> packetList;
+                    packetList.malloc (packetListMembersSize + packetMembersSize * numPackets + dataSize, 1);
+                    packetList->numPackets = numPackets;
+
+                    MIDIPacket* p = packetList->packet;
+
+                    for (MidiBuffer::Iterator i (midiEvents); i.getNextEvent (midiEventData, midiEventSize, midiEventPosition);)
+                    {
+                        p->timeStamp = (MIDITimeStamp) midiEventPosition;
+                        p->length = (size_t) midiEventSize;
+                        memcpy (p->data, midiEventData, (size_t) midiEventSize);
+                        p = MIDIPacketNext (p);
+                    }
+
+                    midiCallback.midiOutputCallback (midiCallback.userData, &lastTimeStamp, 0, packetList);
                 }
-               #else
-                // if your plugin creates midi messages, you'll need to set
-                // the JucePlugin_ProducesMidiOutput macro to 1 in your
-                // JucePluginCharacteristics.h file
-                //jassert (midiEvents.getNumEvents() <= numMidiEventsComingIn);
                #endif
 
                 midiEvents.clear();
@@ -847,12 +924,7 @@ public:
         return noErr;
     }
 
-    OSStatus HandleMidiEvent (UInt8 nStatus, UInt8 inChannel, UInt8 inData1, UInt8 inData2,
-                             #if defined (MAC_OS_X_VERSION_10_5)
-                              UInt32 inStartFrame)
-                             #else
-                              long inStartFrame)
-                             #endif
+    OSStatus HandleMidiEvent (UInt8 nStatus, UInt8 inChannel, UInt8 inData1, UInt8 inData2, UInt32 inStartFrame) override
     {
        #if JucePlugin_WantsMidiInput
         const ScopedLock sl (incomingMidiLock);
@@ -866,7 +938,7 @@ public:
         return noErr;
     }
 
-    OSStatus HandleSysEx (const UInt8* inData, UInt32 inLength)
+    OSStatus HandleSysEx (const UInt8* inData, UInt32 inLength) override
     {
        #if JucePlugin_WantsMidiInput
         const ScopedLock sl (incomingMidiLock);
@@ -876,7 +948,7 @@ public:
     }
 
     //==============================================================================
-    ComponentResult GetPresets (CFArrayRef* outData) const
+    ComponentResult GetPresets (CFArrayRef* outData) const override
     {
         if (outData != nullptr)
         {
@@ -906,7 +978,7 @@ public:
         return noErr;
     }
 
-    OSStatus NewFactoryPresetSet (const AUPreset& inNewFactoryPreset)
+    OSStatus NewFactoryPresetSet (const AUPreset& inNewFactoryPreset) override
     {
         const int numPrograms = juceFilter->getNumPrograms();
         const SInt32 chosenPresetNumber = (int) inNewFactoryPreset.presetNumber;
@@ -924,7 +996,7 @@ public:
         return noErr;
     }
 
-    void componentMovedOrResized (Component& component, bool /*wasMoved*/, bool /*wasResized*/)
+    void componentMovedOrResized (Component& component, bool /*wasMoved*/, bool /*wasResized*/) override
     {
         NSView* view = (NSView*) component.getWindowHandle();
         NSRect r = [[view superview] frame];
@@ -932,7 +1004,7 @@ public:
         r.size.width = component.getWidth();
         r.size.height = component.getHeight();
         [[view superview] setFrame: r];
-        [view setFrame: NSMakeRect (0, 0, component.getWidth(), component.getHeight())];
+        [view setFrame: makeNSRect (component.getLocalBounds())];
         [view setNeedsDisplay: YES];
     }
 
@@ -961,7 +1033,7 @@ public:
         static NSView* createViewFor (AudioProcessor* filter, JuceAU* au, AudioProcessorEditor* const editor)
         {
             EditorCompHolder* editorCompHolder = new EditorCompHolder (editor);
-            NSRect r = NSMakeRect (0, 0, editorCompHolder->getWidth(), editorCompHolder->getHeight());
+            NSRect r = makeNSRect (editorCompHolder->getLocalBounds());
 
             static JuceUIViewClass cls;
             NSView* view = [[cls.createInstance() initWithFrame: r] autorelease];
@@ -984,7 +1056,7 @@ public:
             return view;
         }
 
-        void childBoundsChanged (Component*)
+        void childBoundsChanged (Component*) override
         {
             if (Component* editor = getChildComponent(0))
             {
@@ -999,12 +1071,12 @@ public:
                 r.size.width = editor->getWidth();
                 r.size.height = editor->getHeight();
                 [[view superview] setFrame: r];
-                [view setFrame: NSMakeRect (0, 0, editor->getWidth(), editor->getHeight())];
+                [view setFrame: makeNSRect (editor->getLocalBounds())];
                 [view setNeedsDisplay: YES];
             }
         }
 
-        bool keyPressed (const KeyPress&)
+        bool keyPressed (const KeyPress&) override
         {
             if (PluginHostType().isAbletonLive())
             {
@@ -1166,11 +1238,12 @@ private:
     HeapBlock <float*> channels;
     MidiBuffer midiEvents, incomingEvents;
     bool prepared;
-    SMPTETime lastSMPTETime;
     AUChannelInfo channelInfo [numChannelConfigs];
     AudioUnitEvent auEvent;
     mutable Array<AUPreset> presetsArray;
     CriticalSection incomingMidiLock;
+    AUMIDIOutputCallbackStruct midiCallback;
+    AudioTimeStamp lastTimeStamp;
 
     void clearPresetsArray() const
     {
@@ -1201,36 +1274,39 @@ public:
         deleteUI();
     }
 
-    ComponentResult CreateUI (Float32 /*inXOffset*/, Float32 /*inYOffset*/)
+    ComponentResult CreateUI (Float32 /*inXOffset*/, Float32 /*inYOffset*/) override
     {
         JUCE_AUTORELEASEPOOL
-
-        if (juceFilter == nullptr)
         {
-            void* pointers[2];
-            UInt32 propertySize = sizeof (pointers);
+            if (juceFilter == nullptr)
+            {
+                void* pointers[2];
+                UInt32 propertySize = sizeof (pointers);
 
-            AudioUnitGetProperty (GetEditAudioUnit(),
-                                  juceFilterObjectPropertyID,
-                                  kAudioUnitScope_Global,
-                                  0,
-                                  pointers,
-                                  &propertySize);
+                AudioUnitGetProperty (GetEditAudioUnit(),
+                                      juceFilterObjectPropertyID,
+                                      kAudioUnitScope_Global,
+                                      0,
+                                      pointers,
+                                      &propertySize);
 
-            juceFilter = (AudioProcessor*) pointers[0];
-        }
+                juceFilter = (AudioProcessor*) pointers[0];
+            }
 
-        if (juceFilter != nullptr)
-        {
-            deleteUI();
+            if (juceFilter != nullptr)
+            {
+                deleteUI();
 
-            AudioProcessorEditor* editorComp = juceFilter->createEditorIfNeeded();
-            editorComp->setOpaque (true);
-            windowComp = new ComponentInHIView (editorComp, mCarbonPane);
-        }
-        else
-        {
-            jassertfalse // can't get a pointer to our effect
+                if (AudioProcessorEditor* editorComp = juceFilter->createEditorIfNeeded())
+                {
+                    editorComp->setOpaque (true);
+                    windowComp = new ComponentInHIView (editorComp, mCarbonPane);
+                }
+            }
+            else
+            {
+                jassertfalse // can't get a pointer to our effect
+            }
         }
 
         return noErr;
@@ -1273,62 +1349,64 @@ private:
     class ComponentInHIView  : public Component
     {
     public:
-        ComponentInHIView (AudioProcessorEditor* const editor_, HIViewRef parentHIView)
+        ComponentInHIView (AudioProcessorEditor* ed, HIViewRef parentHIView)
             : parentView (parentHIView),
-              editor (editor_),
+              editor (ed),
               recursive (false)
         {
             JUCE_AUTORELEASEPOOL
+            {
+                jassert (ed != nullptr);
+                addAndMakeVisible (&editor);
+                setOpaque (true);
+                setVisible (true);
+                setBroughtToFrontOnMouseClick (true);
 
-            jassert (editor_ != nullptr);
-            addAndMakeVisible (&editor);
-            setOpaque (true);
-            setVisible (true);
-            setBroughtToFrontOnMouseClick (true);
+                setSize (editor.getWidth(), editor.getHeight());
+                SizeControl (parentHIView, (SInt16) editor.getWidth(), (SInt16) editor.getHeight());
 
-            setSize (editor.getWidth(), editor.getHeight());
-            SizeControl (parentHIView, (SInt16) editor.getWidth(), (SInt16) editor.getHeight());
+                WindowRef windowRef = HIViewGetWindow (parentHIView);
+                hostWindow = [[NSWindow alloc] initWithWindowRef: windowRef];
 
-            WindowRef windowRef = HIViewGetWindow (parentHIView);
-            hostWindow = [[NSWindow alloc] initWithWindowRef: windowRef];
+                [hostWindow retain];
+                [hostWindow setCanHide: YES];
+                [hostWindow setReleasedWhenClosed: YES];
 
-            [hostWindow retain];
-            [hostWindow setCanHide: YES];
-            [hostWindow setReleasedWhenClosed: YES];
+                updateWindowPos();
 
-            updateWindowPos();
+               #if ! JucePlugin_EditorRequiresKeyboardFocus
+                addToDesktop (ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
+                setWantsKeyboardFocus (false);
+               #else
+                addToDesktop (ComponentPeer::windowIsTemporary);
+                setWantsKeyboardFocus (true);
+               #endif
 
-           #if ! JucePlugin_EditorRequiresKeyboardFocus
-            addToDesktop (ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-            setWantsKeyboardFocus (false);
-           #else
-            addToDesktop (ComponentPeer::windowIsTemporary);
-            setWantsKeyboardFocus (true);
-           #endif
+                setVisible (true);
+                toFront (false);
 
-            setVisible (true);
-            toFront (false);
+                addSubWindow();
 
-            addSubWindow();
+                NSWindow* pluginWindow = [((NSView*) getWindowHandle()) window];
+                [pluginWindow setNextResponder: hostWindow];
 
-            NSWindow* pluginWindow = [((NSView*) getWindowHandle()) window];
-            [pluginWindow setNextResponder: hostWindow];
-
-            attachWindowHidingHooks (this, (WindowRef) windowRef, hostWindow);
+                attachWindowHidingHooks (this, (WindowRef) windowRef, hostWindow);
+            }
         }
 
         ~ComponentInHIView()
         {
             JUCE_AUTORELEASEPOOL
+            {
+                removeWindowHidingHooks (this);
 
-            removeWindowHidingHooks (this);
+                NSWindow* pluginWindow = [((NSView*) getWindowHandle()) window];
+                [hostWindow removeChildWindow: pluginWindow];
+                removeFromDesktop();
 
-            NSWindow* pluginWindow = [((NSView*) getWindowHandle()) window];
-            [hostWindow removeChildWindow: pluginWindow];
-            removeFromDesktop();
-
-            [hostWindow release];
-            hostWindow = nil;
+                [hostWindow release];
+                hostWindow = nil;
+            }
         }
 
         void updateWindowPos()
@@ -1351,15 +1429,15 @@ private:
             [pluginWindow orderFront: nil];
         }
 
-        void resized()
+        void resized() override
         {
             if (Component* const child = getChildComponent (0))
                 child->setBounds (getLocalBounds());
         }
 
-        void paint (Graphics&) {}
+        void paint (Graphics&) override {}
 
-        void childBoundsChanged (Component*)
+        void childBoundsChanged (Component*) override
         {
             if (! recursive)
             {
@@ -1382,7 +1460,7 @@ private:
             }
         }
 
-        bool keyPressed (const KeyPress& kp)
+        bool keyPressed (const KeyPress& kp) override
         {
             if (! kp.getModifiers().isCommandDown())
             {
