@@ -8,7 +8,8 @@
               pluginTailLength="0" pluginEditorRequiresKeys="0" pluginAUExportPrefix="NotNotchFilterAU"
               pluginAUViewClass="NotNotchFilterAU_V1" pluginRTASCategory=""
               bundleIdentifier="com.teragonaudio.NotNotchFilter" aaxIdentifier="com.teragonaudio.NotNotchFilter"
-              jucerVersion="3.0.0" pluginAAXCategory="AAX_ePlugInCategory_Dynamics">
+              jucerVersion="3.1.0" pluginAAXCategory="AAX_ePlugInCategory_Dynamics"
+              includeBinaryInAppConfig="1">
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" juceFolder="../../sdk/juce/modules"
                vstFolder="Third-Party/vstsdk2.4" objCExtraSuffix="TTpist">
@@ -29,7 +30,7 @@
       </CONFIGURATIONS>
     </VS2010>
     <LINUX_MAKE targetFolder="Builds/Linux" juceFolder="../../sdk/juce/modules"
-                vstFolder="Third-Party/vstsdk2.4" extraDefs="" extraCompilerFlags="-I../../Third-Party/PluginParameters/include">
+                vstFolder="Third-Party/vstsdk2.4" extraDefs="" extraCompilerFlags="-I../../Third-Party/PluginParameters/include -I../../Third-Party/TeragonGuiComponents/Components">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
                        targetName="NotNotchFilter"/>
@@ -39,14 +40,33 @@
     </LINUX_MAKE>
   </EXPORTFORMATS>
   <MAINGROUP id="Fyqdnh" name="NotNotchFilter">
+    <GROUP id="{BEA7028B-DDA2-ACD2-FA0E-2E136B72000E}" name="Components">
+      <FILE id="qIo9uJ" name="ImageKnob.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/ImageKnob.cpp"/>
+      <FILE id="r15n2Z" name="ImageKnob.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/ImageKnob.h"/>
+      <FILE id="M6Bf2h" name="ImageSlider.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/ImageSlider.cpp"/>
+      <FILE id="K29QGX" name="ImageSlider.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/ImageSlider.h"/>
+      <FILE id="mTnIMg" name="IndicatorLight.cpp" compile="1" resource="0"
+            file="Third-Party/TeragonGuiComponents/Components/IndicatorLight.cpp"/>
+      <FILE id="KOLmdX" name="IndicatorLight.h" compile="0" resource="0"
+            file="Third-Party/TeragonGuiComponents/Components/IndicatorLight.h"/>
+      <FILE id="PzEDi6" name="PushButton.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/PushButton.h"/>
+      <FILE id="OCVIse" name="ResourceCache.cpp" compile="1" resource="0"
+            file="Third-Party/TeragonGuiComponents/Components/ResourceCache.cpp"/>
+      <FILE id="wKGyhE" name="ResourceCache.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/ResourceCache.h"/>
+      <FILE id="duaxA2" name="TeragonGuiComponents.h" compile="0" resource="0"
+            file="Third-Party/TeragonGuiComponents/Components/TeragonGuiComponents.h"/>
+      <FILE id="Bk7U55" name="ThinButton.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/ThinButton.cpp"/>
+      <FILE id="XXspoY" name="ThinButton.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/ThinButton.h"/>
+      <FILE id="Tv9aCk" name="ToggleButton.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/ToggleButton.h"/>
+    </GROUP>
     <GROUP id="{B522E367-7924-268E-2867-794D2485D3B5}" name="Source">
+      <FILE id="Hv03B4" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="PR3D2c" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="TXC19l" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="aWOdu9" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="Wa2mKo" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="piIL6W" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

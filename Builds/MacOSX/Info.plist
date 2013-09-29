@@ -27,7 +27,7 @@
     <array>
       <dict>
         <key>name</key>
-        <string>NotNotchFilter</string>
+        <string>Teragon Audio: NotNotchFilter</string>
         <key>description</key>
         <string>NotNotchFilter</string>
         <key>factoryFunction</key>

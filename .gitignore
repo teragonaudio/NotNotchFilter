@@ -11,3 +11,4 @@ Builds/VisualStudio2010/*.user
 Builds/VisualStudio2010/*.sdf
 Builds/VisualStudio2010/*.opensdf
 Third-Party/vstsdk2.4/*
+Builds/Linux/nbproject/
