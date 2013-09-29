@@ -271,6 +271,9 @@
     <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ResourceCache.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Resources.cpp">
+      <Filter>NotNotchFilter\Components</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ThinButton.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
@@ -1294,6 +1297,9 @@
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ResourceCache.h">
+      <Filter>NotNotchFilter\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Resources.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\TeragonGuiComponents.h">

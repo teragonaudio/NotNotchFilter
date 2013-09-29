@@ -53,6 +53,8 @@
       <FILE id="OCVIse" name="ResourceCache.cpp" compile="1" resource="0"
             file="Third-Party/TeragonGuiComponents/Components/ResourceCache.cpp"/>
       <FILE id="wKGyhE" name="ResourceCache.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/ResourceCache.h"/>
+      <FILE id="E9bVDR" name="Resources.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/Resources.cpp"/>
+      <FILE id="D5EmiW" name="Resources.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/Resources.h"/>
       <FILE id="duaxA2" name="TeragonGuiComponents.h" compile="0" resource="0"
             file="Third-Party/TeragonGuiComponents/Components/TeragonGuiComponents.h"/>
       <FILE id="Bk7U55" name="ThinButton.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/ThinButton.cpp"/>

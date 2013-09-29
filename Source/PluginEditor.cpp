@@ -24,28 +24,6 @@
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
-teragon::ResourceCache* PluginEditor::getCache() {
-    teragon::ResourceCache *cache = new teragon::ResourceCache();
-
-    cache->add("indicator_light",
-               indicator_light_active_png, indicator_light_active_pngSize,
-               indicator_light_inactive_png, indicator_light_inactive_pngSize);
-    cache->add("push_button",
-               push_button_normal_png, push_button_normal_pngSize,
-               push_button_pressed_png, push_button_pressed_pngSize);
-    cache->add("slider", slider_thumb_png, slider_thumb_pngSize,
-               nullptr, 0,
-               slider_well_png, slider_well_pngSize);
-    cache->add("toggle_button",
-               toggle_button_normal_png, toggle_button_normal_pngSize,
-               toggle_button_pressed_png, toggle_button_pressed_pngSize);
-    cache->add("large_knob",
-               largeknob270frames_png, largeknob270frames_pngSize);
-    cache->add("small_knob",
-               smallknob270frames_png, smallknob270frames_pngSize);
-
-    return cache;
-}
 //[/MiscUserDefs]
 
 //==============================================================================

@@ -4,6 +4,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginEditor.h"
 #include "PluginParameters.h"
+#include "Resources.h"
 
 typedef enum {
   kParamFilterFrequency,
@@ -42,7 +43,7 @@ public:
   void processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
   //==============================================================================
-  AudioProcessorEditor *createEditor() { return new PluginEditor(this, parameters, PluginEditor::getCache()); }
+  AudioProcessorEditor *createEditor() { return new PluginEditor(this, parameters, Resources::getCache()); }
   bool hasEditor() const { return true; };
 
   //==============================================================================

@@ -53,6 +53,7 @@ OBJECTS := \
   $(OBJDIR)/ImageSlider_6b6f7b2d.o \
   $(OBJDIR)/IndicatorLight_17ef99a0.o \
   $(OBJDIR)/ResourceCache_cde90e25.o \
+  $(OBJDIR)/Resources_8a9b15b6.o \
   $(OBJDIR)/ThinButton_846e8c84.o \
   $(OBJDIR)/PluginEditor_94d4fb09.o \
   $(OBJDIR)/PluginProcessor_a059e380.o \
@@ -104,6 +105,11 @@ $(OBJDIR)/IndicatorLight_17ef99a0.o: ../../Third-Party/TeragonGuiComponents/Comp
 $(OBJDIR)/ResourceCache_cde90e25.o: ../../Third-Party/TeragonGuiComponents/Components/ResourceCache.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling ResourceCache.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/Resources_8a9b15b6.o: ../../Third-Party/TeragonGuiComponents/Components/Resources.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling Resources.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/ThinButton_846e8c84.o: ../../Third-Party/TeragonGuiComponents/Components/ThinButton.cpp

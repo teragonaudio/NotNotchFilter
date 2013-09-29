@@ -131,6 +131,7 @@
     <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ImageSlider.cpp"/>
     <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\IndicatorLight.cpp"/>
     <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ResourceCache.cpp"/>
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Resources.cpp"/>
     <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ThinButton.cpp"/>
     <ClCompile Include="..\..\Source\PluginEditor.cpp"/>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp"/>
@@ -1043,6 +1044,7 @@
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\IndicatorLight.h"/>
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\PushButton.h"/>
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ResourceCache.h"/>
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Resources.h"/>
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\TeragonGuiComponents.h"/>
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ThinButton.h"/>
     <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ToggleButton.h"/>

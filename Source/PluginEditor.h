@@ -45,7 +45,6 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    static teragon::ResourceCache* getCache();
     //[/UserMethods]
 
     void paint (Graphics& g);
