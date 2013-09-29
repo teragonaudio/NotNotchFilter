@@ -2,6 +2,7 @@
 #define __PLUGINPROCESSOR_H_A4C75B3B__
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "PluginEditor.h"
 #include "PluginParameters.h"
 
 typedef enum {
@@ -41,8 +42,8 @@ public:
   void processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
   //==============================================================================
-  AudioProcessorEditor *createEditor() { return NULL; }
-  bool hasEditor() const { return false; };
+  AudioProcessorEditor *createEditor() { return new PluginEditor(this, parameters, PluginEditor::getCache()); }
+  bool hasEditor() const { return true; };
 
   //==============================================================================
   const String getName() const { return JucePlugin_Name; }
