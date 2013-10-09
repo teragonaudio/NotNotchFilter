@@ -38,6 +38,10 @@
 #ifdef __clang__
  #pragma clang diagnostic push
  #pragma clang diagnostic ignored "-Wshorten-64-to-32"
+ #pragma clang diagnostic ignored "-Wunused-parameter"
+ #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+ #pragma clang diagnostic ignored "-Wsign-conversion"
+ #pragma clang diagnostic ignored "-Wconversion"
 #endif
 
 #include "../utility/juce_IncludeSystemHeaders.h"
@@ -51,6 +55,7 @@
  #define Point CarbonDummyPointName
  #define Component CarbonDummyCompName
 #endif
+
 #include "AUMIDIEffectBase.h"
 #include "MusicDeviceBase.h"
 #undef Point
@@ -879,7 +884,7 @@ public:
                     for (MidiBuffer::Iterator i (midiEvents); i.getNextEvent (midiEventData, midiEventSize, midiEventPosition);)
                     {
                         p->timeStamp = (MIDITimeStamp) midiEventPosition;
-                        p->length = (size_t) midiEventSize;
+                        p->length = (UInt16) midiEventSize;
                         memcpy (p->data, midiEventData, (size_t) midiEventSize);
                         p = MIDIPacketNext (p);
                     }
@@ -1474,7 +1479,7 @@ private:
                     lastEventTime = eventTime;
 
                     [[hostWindow parentWindow] makeKeyWindow];
-                    [NSApp postEvent: [NSApp currentEvent] atStart: YES];
+                    repostCurrentNSEvent();
                 }
             }
 

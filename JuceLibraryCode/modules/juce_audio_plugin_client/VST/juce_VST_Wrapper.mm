@@ -222,6 +222,7 @@ void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth
                                                 [hostView frame].size.height + (newHeight - component->getHeight()))];
         }
        #else
+        (void) nsWindow;
 
         if (HIViewRef dummyView = (HIViewRef) (void*) (pointer_sized_int)
                                      component->getProperties() ["dummyViewRef"].toString().getHexValue64())
@@ -253,7 +254,7 @@ bool forwardCurrentKeyEventToHost (Component* comp)
    #else
     NSWindow* win = [(NSView*) comp->getWindowHandle() window];
     [[win parentWindow] makeKeyWindow];
-    [NSApp postEvent: [NSApp currentEvent] atStart: YES];
+    repostCurrentNSEvent();
     return true;
    #endif
 }

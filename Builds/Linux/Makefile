@@ -18,12 +18,12 @@ ifeq ($(CONFIG),Debug)
     TARGET_ARCH := -march=native
   endif
 
-  CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
-  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -g -ggdb -fPIC -O0 -I../../Third-Party/PluginParameters/include -I../../Third-Party/TeragonGuiComponents/Components
+  CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
+  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -g -ggdb -fPIC -O0 -I../../Third-Party/PluginParameters/include -I../../Third-Party/TeragonGuiComponents/Components/Source
   CXXFLAGS += $(CFLAGS)
   LDFLAGS += $(TARGET_ARCH) -L$(BINDIR) -L$(LIBDIR) -shared -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
   LDDEPS :=
-  RESFLAGS :=  -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
+  RESFLAGS :=  -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
   TARGET := NotNotchFilter.so
   BLDCMD = $(CXX) -o $(OUTDIR)/$(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(TARGET_ARCH)
 endif
@@ -38,23 +38,23 @@ ifeq ($(CONFIG),Release)
     TARGET_ARCH := -march=native
   endif
 
-  CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
-  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -fPIC -Os -I../../Third-Party/PluginParameters/include -I../../Third-Party/TeragonGuiComponents/Components
+  CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
+  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -fPIC -Os -I../../Third-Party/PluginParameters/include -I../../Third-Party/TeragonGuiComponents/Components/Source
   CXXFLAGS += $(CFLAGS)
   LDFLAGS += $(TARGET_ARCH) -L$(BINDIR) -L$(LIBDIR) -shared -fvisibility=hidden -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
   LDDEPS :=
-  RESFLAGS :=  -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode
+  RESFLAGS :=  -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
   TARGET := NotNotchFilter.so
   BLDCMD = $(CXX) -o $(OUTDIR)/$(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(TARGET_ARCH)
 endif
 
 OBJECTS := \
-  $(OBJDIR)/ImageKnob_899d9802.o \
-  $(OBJDIR)/ImageSlider_6b6f7b2d.o \
-  $(OBJDIR)/IndicatorLight_17ef99a0.o \
-  $(OBJDIR)/ResourceCache_cde90e25.o \
-  $(OBJDIR)/Resources_8a9b15b6.o \
-  $(OBJDIR)/ThinButton_846e8c84.o \
+  $(OBJDIR)/ImageKnob_234e9ab6.o \
+  $(OBJDIR)/ImageSlider_5ceaa0e1.o \
+  $(OBJDIR)/IndicatorLight_81b8276c.o \
+  $(OBJDIR)/ResourceCache_4d3196d9.o \
+  $(OBJDIR)/Resources_244c186a.o \
+  $(OBJDIR)/ThinButton_20dde050.o \
   $(OBJDIR)/PluginEditor_94d4fb09.o \
   $(OBJDIR)/PluginProcessor_a059e380.o \
   $(OBJDIR)/juce_audio_basics_2442e4ea.o \
@@ -87,32 +87,32 @@ strip:
 	@echo Stripping NotNotchFilter
 	-@strip --strip-unneeded $(OUTDIR)/$(TARGET)
 
-$(OBJDIR)/ImageKnob_899d9802.o: ../../Third-Party/TeragonGuiComponents/Components/ImageKnob.cpp
+$(OBJDIR)/ImageKnob_234e9ab6.o: ../../Third-Party/TeragonGuiComponents/Components/Source/ImageKnob.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling ImageKnob.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
-$(OBJDIR)/ImageSlider_6b6f7b2d.o: ../../Third-Party/TeragonGuiComponents/Components/ImageSlider.cpp
+$(OBJDIR)/ImageSlider_5ceaa0e1.o: ../../Third-Party/TeragonGuiComponents/Components/Source/ImageSlider.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling ImageSlider.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
-$(OBJDIR)/IndicatorLight_17ef99a0.o: ../../Third-Party/TeragonGuiComponents/Components/IndicatorLight.cpp
+$(OBJDIR)/IndicatorLight_81b8276c.o: ../../Third-Party/TeragonGuiComponents/Components/Source/IndicatorLight.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling IndicatorLight.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
-$(OBJDIR)/ResourceCache_cde90e25.o: ../../Third-Party/TeragonGuiComponents/Components/ResourceCache.cpp
+$(OBJDIR)/ResourceCache_4d3196d9.o: ../../Third-Party/TeragonGuiComponents/Components/Source/ResourceCache.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling ResourceCache.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
-$(OBJDIR)/Resources_8a9b15b6.o: ../../Third-Party/TeragonGuiComponents/Components/Resources.cpp
+$(OBJDIR)/Resources_244c186a.o: ../../Third-Party/TeragonGuiComponents/Components/Source/Resources.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling Resources.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
-$(OBJDIR)/ThinButton_846e8c84.o: ../../Third-Party/TeragonGuiComponents/Components/ThinButton.cpp
+$(OBJDIR)/ThinButton_20dde050.o: ../../Third-Party/TeragonGuiComponents/Components/Source/ThinButton.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling ThinButton.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"

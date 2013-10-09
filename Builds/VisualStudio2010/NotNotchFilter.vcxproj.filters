@@ -259,22 +259,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ImageKnob.cpp">
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ImageKnob.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ImageSlider.cpp">
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ImageSlider.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\IndicatorLight.cpp">
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\IndicatorLight.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ResourceCache.cpp">
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ResourceCache.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Resources.cpp">
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\Resources.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\ThinButton.cpp">
+    <ClCompile Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ThinButton.cpp">
       <Filter>NotNotchFilter\Components</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\PluginEditor.cpp">
@@ -1284,31 +1284,31 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ImageKnob.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ImageKnob.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ImageSlider.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ImageSlider.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\IndicatorLight.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\IndicatorLight.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\PushButton.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\PushButton.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ResourceCache.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ResourceCache.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Resources.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\Resources.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\TeragonGuiComponents.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\TeragonGuiComponents.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ThinButton.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ThinButton.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\ToggleButton.h">
+    <ClInclude Include="..\..\Third-Party\TeragonGuiComponents\Components\Source\ToggleButton.h">
       <Filter>NotNotchFilter\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\PluginEditor.h">

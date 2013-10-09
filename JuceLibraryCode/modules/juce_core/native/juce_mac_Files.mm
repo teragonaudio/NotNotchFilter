@@ -101,7 +101,7 @@ namespace FileHelpers
     }
 
    #if JUCE_IOS
-    String getIOSSystemLocation (NSSearchPathDirectory type)
+    static String getIOSSystemLocation (NSSearchPathDirectory type)
     {
         return nsStringToJuce ([NSSearchPathForDirectoriesInDomains (type, NSUserDomainMask, YES)
                                 objectAtIndex: 0]);
@@ -399,6 +399,7 @@ bool JUCE_CALLTYPE Process::openDocument (const String& fileName, const String& 
         NSURL* filenameAsURL = [NSURL URLWithString: juceStringToNS (fileName)];
 
       #if JUCE_IOS
+        (void) parameters;
         return [[UIApplication sharedApplication] openURL: filenameAsURL];
       #else
         NSWorkspace* workspace = [NSWorkspace sharedWorkspace];
