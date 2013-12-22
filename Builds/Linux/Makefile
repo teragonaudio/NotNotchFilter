@@ -52,9 +52,12 @@ OBJECTS := \
   $(OBJDIR)/ImageKnob_234e9ab6.o \
   $(OBJDIR)/ImageSlider_5ceaa0e1.o \
   $(OBJDIR)/IndicatorLight_81b8276c.o \
+  $(OBJDIR)/PushButton_85a25391.o \
   $(OBJDIR)/ResourceCache_4d3196d9.o \
   $(OBJDIR)/Resources_244c186a.o \
+  $(OBJDIR)/StatusBar_62e48306.o \
   $(OBJDIR)/ThinButton_20dde050.o \
+  $(OBJDIR)/tinythread_51467623.o \
   $(OBJDIR)/PluginEditor_94d4fb09.o \
   $(OBJDIR)/PluginProcessor_a059e380.o \
   $(OBJDIR)/juce_audio_basics_2442e4ea.o \
@@ -102,6 +105,11 @@ $(OBJDIR)/IndicatorLight_81b8276c.o: ../../Third-Party/TeragonGuiComponents/Comp
 	@echo "Compiling IndicatorLight.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
+$(OBJDIR)/PushButton_85a25391.o: ../../Third-Party/TeragonGuiComponents/Components/Source/PushButton.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling PushButton.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
 $(OBJDIR)/ResourceCache_4d3196d9.o: ../../Third-Party/TeragonGuiComponents/Components/Source/ResourceCache.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling ResourceCache.cpp"
@@ -112,9 +120,19 @@ $(OBJDIR)/Resources_244c186a.o: ../../Third-Party/TeragonGuiComponents/Component
 	@echo "Compiling Resources.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
+$(OBJDIR)/StatusBar_62e48306.o: ../../Third-Party/TeragonGuiComponents/Components/Source/StatusBar.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling StatusBar.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
 $(OBJDIR)/ThinButton_20dde050.o: ../../Third-Party/TeragonGuiComponents/Components/Source/ThinButton.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling ThinButton.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/tinythread_51467623.o: ../../Third-Party/TeragonGuiComponents/Components/PluginParameters/include/tinythread/source/tinythread.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling tinythread.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/PluginEditor_94d4fb09.o: ../../Source/PluginEditor.cpp
