@@ -128,7 +128,7 @@ void NotNotchFilterAudioProcessor::setStateInformation(const void *data, int siz
     for (int i = 0; i < parameters.size(); i++) {
       PluginParameter *parameter = parameters[i];
       if (xmlState->hasAttribute(parameter->getSafeName().c_str())) {
-        parameter->setValue(xmlState->getDoubleAttribute(parameter->getSafeName().c_str()));
+        parameters.set(parameter, xmlState->getDoubleAttribute(parameter->getSafeName().c_str()));
       }
     }
     reset();

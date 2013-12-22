@@ -40,7 +40,7 @@ class PluginEditor  : public AudioProcessorEditor
 {
 public:
     //==============================================================================
-    PluginEditor (AudioProcessor *owner, teragon::PluginParameterSet &p, teragon::ResourceCache *r);
+    PluginEditor (AudioProcessor *owner, teragon::ThreadsafePluginParameterSet &p, teragon::ResourceCache *r);
     ~PluginEditor();
 
     //==============================================================================
@@ -57,14 +57,14 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-    teragon::PluginParameterSet &parameters;
+    teragon::ThreadsafePluginParameterSet &parameters;
     teragon::ResourceCache *resources;
     //[/UserVariables]
 
     //==============================================================================
-    ScopedPointer<teragon::ImageKnob> frequencyKnob;
-    ScopedPointer<teragon::ImageKnob> resonanceKnob;
-    ScopedPointer<teragon::ImageKnob> valleySizeKnob;
+    ScopedPointer<teragon::ImageKnobLarge> frequencyKnob;
+    ScopedPointer<teragon::ImageKnobSmall> resonanceKnob;
+    ScopedPointer<teragon::ImageKnobSmall> valleySizeKnob;
     Image cachedImage_background_png;
 
 

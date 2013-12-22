@@ -27,21 +27,24 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-PluginEditor::PluginEditor (AudioProcessor *owner, teragon::PluginParameterSet &p, teragon::ResourceCache *r)
+PluginEditor::PluginEditor (AudioProcessor *owner, teragon::ThreadsafePluginParameterSet &p, teragon::ResourceCache *r)
     : AudioProcessorEditor(owner),
       parameters(p),
       resources(r)
 {
-    addAndMakeVisible (frequencyKnob = new teragon::ImageKnob (parameters["Frequency"],
-                                                               resources->get("large_knob")));
+    addAndMakeVisible (frequencyKnob = new teragon::ImageKnobLarge (parameters,
+                                                                    "Frequency",
+                                                                    resources));
     frequencyKnob->setName ("frequency knob");
 
-    addAndMakeVisible (resonanceKnob = new teragon::ImageKnob (parameters["Resonance"],
-                                                               resources->get("large_knob")));
+    addAndMakeVisible (resonanceKnob = new teragon::ImageKnobSmall (parameters,
+                                                                    "Resonance",
+                                                                    resources));
     resonanceKnob->setName ("resonance knob");
 
-    addAndMakeVisible (valleySizeKnob = new teragon::ImageKnob (parameters["Valley Size"],
-                                                                resources->get("large_knob")));
+    addAndMakeVisible (valleySizeKnob = new teragon::ImageKnobSmall (parameters,
+                                                                     "Valley Size",
+                                                                     resources));
     valleySizeKnob->setName ("valley size knob");
 
     cachedImage_background_png = ImageCache::getFromMemory (background_png, background_pngSize);
@@ -89,9 +92,9 @@ void PluginEditor::paint (Graphics& g)
 
 void PluginEditor::resized()
 {
-    frequencyKnob->setBounds (16, 16, 113, 113);
-    resonanceKnob->setBounds (145, 16, 113, 113);
-    valleySizeKnob->setBounds (274, 16, 113, 113);
+    frequencyKnob->setBounds (144, 16, 113, 113);
+    resonanceKnob->setBounds (16, 16, 66, 66);
+    valleySizeKnob->setBounds (274, 16, 66, 66);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -112,7 +115,7 @@ void PluginEditor::resized()
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="PluginEditor" componentName=""
-                 parentClasses="public AudioProcessorEditor" constructorParams="AudioProcessor *owner, teragon::PluginParameterSet &amp;p, teragon::ResourceCache *r"
+                 parentClasses="public AudioProcessorEditor" constructorParams="AudioProcessor *owner, teragon::ThreadsafePluginParameterSet &amp;p, teragon::ResourceCache *r"
                  variableInitialisers="AudioProcessorEditor(owner),&#10;parameters(p),&#10;resources(r)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="1" initialWidth="403" initialHeight="166">
@@ -120,14 +123,14 @@ BEGIN_JUCER_METADATA
     <IMAGE pos="0 0 403 166" resource="background_png" opacity="1" mode="0"/>
   </BACKGROUND>
   <GENERICCOMPONENT name="frequency knob" id="cbc3f5c5fff9e09b" memberName="frequencyKnob"
-                    virtualName="teragon::ImageKnob" explicitFocusOrder="0" pos="16 16 113 113"
-                    class="teragon::ImageKnob" params="parameters[&quot;Frequency&quot;],&#10;resources-&gt;get(&quot;large_knob&quot;)"/>
+                    virtualName="teragon::ImageKnobLarge" explicitFocusOrder="0"
+                    pos="144 16 113 113" class="Component" params="parameters,&#10;&quot;Frequency&quot;,&#10;resources"/>
   <GENERICCOMPONENT name="resonance knob" id="13c569138892eb13" memberName="resonanceKnob"
-                    virtualName="teragon::ImageKnob" explicitFocusOrder="0" pos="145 16 113 113"
-                    class="teragon::ImageKnob" params="parameters[&quot;Resonance&quot;],&#10;resources-&gt;get(&quot;large_knob&quot;)"/>
+                    virtualName="teragon::ImageKnobSmall" explicitFocusOrder="0"
+                    pos="16 16 66 66" class="Component" params="parameters,&#10;&quot;Resonance&quot;,&#10;resources"/>
   <GENERICCOMPONENT name="valley size knob" id="1f8ba387e5cceed1" memberName="valleySizeKnob"
-                    virtualName="teragon::ImageKnob" explicitFocusOrder="0" pos="274 16 113 113"
-                    class="teragon::ImageKnob" params="parameters[&quot;Valley Size&quot;],&#10;resources-&gt;get(&quot;large_knob&quot;)"/>
+                    virtualName="teragon::ImageKnobSmall" explicitFocusOrder="0"
+                    pos="274 16 66 66" class="Component" params="parameters,&#10;&quot;Valley Size&quot;,&#10;resources"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

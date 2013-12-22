@@ -49,8 +49,8 @@ public:
   //==============================================================================
   const String getName() const { return JucePlugin_Name; }
   int getNumParameters() { return parameters.size(); }
-  float getParameter(int index) { return parameters[index]->getScaledValue(); }
-  void setParameter(int index, float newValue) { parameters[index]->setScaledValue(newValue); }
+  float getParameter(int index) { return (float)parameters[index]->getScaledValue(); }
+  void setParameter(int index, float newValue) { parameters.setScaled(index, newValue); }
   const String getParameterName(int index) { return parameters[index]->getName().c_str(); }
   const String getParameterText(int index) { return parameters[index]->getDisplayText().c_str(); }
 
@@ -80,7 +80,7 @@ private:
   void processHiFilter(float *channelData, const int channel, const int numSamples);
   void processLoFilter(float *channelData, const int channel, const int numSamples);
 
-  PluginParameterSet parameters;
+  ThreadsafePluginParameterSet parameters;
 
   float maxFilterFrequency;
   float loFrequency;
