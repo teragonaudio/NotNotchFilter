@@ -6,12 +6,7 @@
 #include "PluginParameters.h"
 #include "Resources.h"
 
-typedef enum {
-  kParamFilterFrequency,
-  kParamResonance,
-  kParamValleySize,
-  kParamNumParams
-} kParams;
+using namespace teragon;
 
 static const float kFrequencyMin = 400.0f;
 static const float kFrequencyDefault = kFrequencyMin;
@@ -22,10 +17,8 @@ static const float kResonanceMax = sqrtf(2.0);
 static const float kValleySizeMin = 0.1f;
 static const float kValleySizeMax = 20000.0f;
 static const float kValleySizeDefault = kValleySizeMin;
+static const float kMinimumNotchFrequency = 20.0f;
 
-#define PARAM_TEXT_NUM_DECIMAL_PLACES 2
-
-using namespace teragon;
 
 class NotNotchFilterAudioProcessor : public AudioProcessor, public PluginParameterObserver {
 public:
@@ -71,9 +64,19 @@ public:
     void getStateInformation(MemoryBlock& destData);
     void setStateInformation(const void *data, int sizeInBytes);
 
+    // PluginParameterObserver methods
+    bool isRealtimePriority() const { return true; }
+    void onParameterUpdated(const PluginParameter *parameter);
+
+private:
+    void recalculateCoefficients(const double sampleRate);
+
 private:
     // ParameterSet and cached parameters
     ThreadsafePluginParameterSet parameters;
+    FrequencyParameter *frequency;
+    FloatParameter *resonance;
+    FrequencyParameter *valleySize;
 
     float maxFilterFrequency;
     float loFrequency;

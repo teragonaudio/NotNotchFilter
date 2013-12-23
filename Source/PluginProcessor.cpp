@@ -8,9 +8,33 @@
 NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() :
 AudioProcessor(),
 PluginParameterObserver() {
-    parameters.add(new FrequencyParameter("Frequency", kFrequencyMin, kFrequencyMax, kFrequencyDefault));
-    parameters.add(new FloatParameter("Resonance", kResonanceMin, kResonanceMax, kResonanceDefault));
-    parameters.add(new FrequencyParameter("Valley Size", kValleySizeMin, kValleySizeMax, kValleySizeDefault));
+    frequency = new FrequencyParameter("Frequency",
+                                       kFrequencyMin,
+                                       kFrequencyMax,
+                                       kFrequencyDefault);
+    parameters.add(frequency);
+
+    resonance = new FloatParameter("Resonance",
+                                   kResonanceMin,
+                                   kResonanceMax,
+                                   kResonanceDefault);
+    parameters.add(resonance);
+
+    valleySize = new FrequencyParameter("Valley Size",
+                                        kValleySizeMin,
+                                        kValleySizeMax,
+                                        kValleySizeDefault);
+    parameters.add(valleySize);
+
+    for(int i = 0; i < parameters.size(); ++i) {
+        parameters[i]->addObserver(this);
+    }
+
+    ParameterString version = ProjectInfo::projectName;
+    version.append(" version ").append(ProjectInfo::versionString);
+    parameters.add(new StringParameter("Version", version));
+
+    reset();
 }
 
 void NotNotchFilterAudioProcessor::reset() {
@@ -29,14 +53,21 @@ void NotNotchFilterAudioProcessor::reset() {
     }
 }
 
+void NotNotchFilterAudioProcessor::onParameterUpdated(const PluginParameter *parameter) {
+    recalculateCoefficients(getSampleRate());
+}
+
 void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+    recalculateCoefficients(sampleRate);
     reset();
+}
 
-    float baseFrequency = parameters["Frequency"]->getValue();
-    float filterResonance = parameters["Resonance"]->getValue();
-    maxFilterFrequency = (float)(getSampleRate() / 2.0f) - 10.0f;
+void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRate) {
+    const float baseFrequency = (float)frequency->getValue();
+    const float filterResonance = (float)resonance->getValue();
+    maxFilterFrequency = (float)(sampleRate / 2.0f) - 10.0f;
 
-    loFrequency = baseFrequency + parameters["Valley Size"]->getValue();
+    loFrequency = (float)(baseFrequency + valleySize->getValue());
     if(loFrequency > maxFilterFrequency) {
         loFrequency = maxFilterFrequency;
     }
@@ -47,11 +78,11 @@ void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesP
     hiCoeffB1 = 2.0f * hiCoeffA1 * ((hiCoeffConstant * hiCoeffConstant) - 1.0f);
     hiCoeffB2 = hiCoeffA1 * (1.0f - (filterResonance * hiCoeffConstant) + (hiCoeffConstant * hiCoeffConstant));
 
-    hiFrequency = baseFrequency;// - valleySize;
+    hiFrequency = baseFrequency; // - valleySize;
     // Don't compare to the minimum notch frequency; instead we want to catch anything below 20Hz
     // as it could cause feedback in the filter or other artifacts.
-    if(hiFrequency < 20) {
-        hiFrequency = 20;
+    if(hiFrequency < kMinimumNotchFrequency) {
+        hiFrequency = kMinimumNotchFrequency;
     }
 
     const float loCoeffConstant = (float)(1.0f / tan(hiFrequency / sampleRate));
@@ -62,8 +93,11 @@ void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesP
 }
 
 void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midiMessages) {
-    // Pass audio through if valley size is set to min. We want to have a clean signal when the filter is off.
-    if(parameters["Valley Size"]->getValue() > kValleySizeMin) {
+    parameters.processRealtimeEvents();
+
+    // Pass audio through if valley size is set to min. We want to have a clean
+    // signal when the filter is off.
+    if(valleySize->getValue() > kValleySizeMin) {
         for(int channel = 0; channel < getNumInputChannels(); ++channel) {
             float *channelData = buffer.getSampleData(channel);
             float hiOutput, loOutput;
@@ -126,6 +160,8 @@ void NotNotchFilterAudioProcessor::setStateInformation(const void *data, int siz
                 parameters.set(parameter, xmlState->getDoubleAttribute(parameter->getSafeName().c_str()));
             }
         }
+        parameters.processRealtimeEvents();
+        recalculateCoefficients(getSampleRate());
         reset();
     }
 }
