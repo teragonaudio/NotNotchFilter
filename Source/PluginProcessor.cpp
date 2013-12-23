@@ -5,8 +5,9 @@
 #include <math.h>
 #endif
 
-//==============================================================================
-NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() {
+NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() :
+AudioProcessor(),
+PluginParameterObserver() {
     parameters.add(new FrequencyParameter("Frequency", kFrequencyMin, kFrequencyMax, kFrequencyDefault));
     parameters.add(new FloatParameter("Resonance", kResonanceMin, kResonanceMax, kResonanceDefault));
     parameters.add(new FrequencyParameter("Valley Size", kValleySizeMin, kValleySizeMax, kValleySizeDefault));

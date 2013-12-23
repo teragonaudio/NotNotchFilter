@@ -27,7 +27,7 @@ static const float kValleySizeDefault = kValleySizeMin;
 
 using namespace teragon;
 
-class NotNotchFilterAudioProcessor : public AudioProcessor {
+class NotNotchFilterAudioProcessor : public AudioProcessor, public PluginParameterObserver {
 public:
     NotNotchFilterAudioProcessor();
     ~NotNotchFilterAudioProcessor() {}
