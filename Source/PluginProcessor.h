@@ -27,77 +27,69 @@ static const float kValleySizeDefault = kValleySizeMin;
 
 using namespace teragon;
 
-//==============================================================================
-class NotNotchFilterAudioProcessor  : public AudioProcessor {
+class NotNotchFilterAudioProcessor : public AudioProcessor {
 public:
+    NotNotchFilterAudioProcessor();
+    ~NotNotchFilterAudioProcessor() {}
 
-  //==============================================================================
-  NotNotchFilterAudioProcessor();
-  ~NotNotchFilterAudioProcessor();
+    // Playback
+    void prepareToPlay(double sampleRate, int samplesPerBlock);
+    void releaseResources() {}
+    void reset();
+    void processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
-  //==============================================================================
-  void prepareToPlay(double sampleRate, int samplesPerBlock);
-  void releaseResources();
-  void reset();
+    // Editor
+    AudioProcessorEditor *createEditor() { return new PluginEditor(this, parameters, Resources::getCache()); }
+    bool hasEditor() const { return true; };
 
-  void processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
+    // Parameter methods
+    int getNumParameters() { return parameters.size(); }
+    float getParameter(int index) { return (float)parameters[index]->getScaledValue(); }
+    void setParameter(int index, float newValue) { parameters.setScaled(index, newValue); }
+    const String getParameterName(int index) { return parameters[index]->getName().c_str(); }
+    const String getParameterText(int index) { return parameters[index]->getDisplayText().c_str(); }
 
-  //==============================================================================
-  AudioProcessorEditor *createEditor() { return new PluginEditor(this, parameters, Resources::getCache()); }
-  bool hasEditor() const { return true; };
+    // Plugin properties and basic information
+    const String getName() const { return JucePlugin_Name; }
+    const String getInputChannelName(int channelIndex) const { return String(channelIndex + 1); };
+    const String getOutputChannelName(int channelIndex) const { return String(channelIndex + 1); };
+    bool isInputChannelStereoPair(int index) const { return true; };
+    bool isOutputChannelStereoPair(int index) const { return true; };
+    bool acceptsMidi() const { return false; };
+    bool producesMidi() const { return false; };
+    bool silenceInProducesSilenceOut() const { return true; }
+    double getTailLengthSeconds() const { return 0.0; }
 
-  //==============================================================================
-  const String getName() const { return JucePlugin_Name; }
-  int getNumParameters() { return parameters.size(); }
-  float getParameter(int index) { return (float)parameters[index]->getScaledValue(); }
-  void setParameter(int index, float newValue) { parameters.setScaled(index, newValue); }
-  const String getParameterName(int index) { return parameters[index]->getName().c_str(); }
-  const String getParameterText(int index) { return parameters[index]->getDisplayText().c_str(); }
+    // Program support (not needed by this plugin)
+    int getNumPrograms() { return 0; };
+    int getCurrentProgram() { return 0; };
+    void setCurrentProgram(int index) {};
+    const String getProgramName(int index) { return String::empty; };
+    void changeProgramName(int index, const String& newName) {};
 
-  const String getInputChannelName(int channelIndex) const { return String(channelIndex + 1); };
-  const String getOutputChannelName(int channelIndex) const { return String(channelIndex + 1); };
-
-  bool isInputChannelStereoPair(int index) const { return true; };
-  bool isOutputChannelStereoPair(int index) const { return true; };
-
-  bool acceptsMidi() const { return false; };
-  bool producesMidi() const { return false; };
-  bool silenceInProducesSilenceOut() const { return true; }
-  double getTailLengthSeconds() const { return 0.0; }
-
-  //==============================================================================
-  int getNumPrograms() { return 0; };
-  int getCurrentProgram() { return 0; };
-  void setCurrentProgram(int index) {};
-  const String getProgramName(int index) { return String::empty; };
-  void changeProgramName(int index, const String& newName) {};
-
-  //==============================================================================
-  void getStateInformation(MemoryBlock& destData);
-  void setStateInformation(const void *data, int sizeInBytes);
+    // State save/restore
+    void getStateInformation(MemoryBlock& destData);
+    void setStateInformation(const void *data, int sizeInBytes);
 
 private:
-  void processHiFilter(float *channelData, const int channel, const int numSamples);
-  void processLoFilter(float *channelData, const int channel, const int numSamples);
+    // ParameterSet and cached parameters
+    ThreadsafePluginParameterSet parameters;
 
-  ThreadsafePluginParameterSet parameters;
+    float maxFilterFrequency;
+    float loFrequency;
+    float hiFrequency;
 
-  float maxFilterFrequency;
-  float loFrequency;
-  float hiFrequency;
+    float hiLastInput1[2], hiLastInput2[2], hiLastInput3[2];
+    float loLastInput1[2], loLastInput2[2], loLastInput3[2];
+    float hiLastOutput1[2], hiLastOutput2[2];
+    float loLastOutput1[2], loLastOutput2[2];
 
-  float hiLastInput1[2], hiLastInput2[2], hiLastInput3[2];
-  float loLastInput1[2], loLastInput2[2], loLastInput3[2];
-  float hiLastOutput1[2], hiLastOutput2[2];
-  float loLastOutput1[2], loLastOutput2[2];
+    float loCoeffA1, loCoeffA2;
+    float loCoeffB1, loCoeffB2;
+    float hiCoeffA1, hiCoeffA2;
+    float hiCoeffB1, hiCoeffB2;
 
-  float loCoeffA1, loCoeffA2;
-  float loCoeffB1, loCoeffB2;
-  float hiCoeffA1, hiCoeffA2;
-  float hiCoeffB1, hiCoeffB2;
-
-  //==============================================================================
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NotNotchFilterAudioProcessor);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NotNotchFilterAudioProcessor);
 };
 
 #endif  // __PLUGINPROCESSOR_H_A4C75B3B__
