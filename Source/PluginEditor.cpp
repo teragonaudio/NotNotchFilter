@@ -24,6 +24,7 @@
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
+using namespace teragon;
 //[/MiscUserDefs]
 
 //==============================================================================
@@ -47,15 +48,27 @@ PluginEditor::PluginEditor (AudioProcessor *owner, teragon::ThreadsafePluginPara
                                                                      resources));
     valleySizeKnob->setName ("valley size knob");
 
+    addAndMakeVisible (statusBar = new teragon::StatusBar (parameters,
+                                                           resources));
+    statusBar->setName ("status bar");
+
+    addAndMakeVisible (versionLabel = new teragon::ParameterLabel (parameters,
+                                                                   "Version"));
+    versionLabel->setName ("version label");
+
     cachedImage_background_png = ImageCache::getFromMemory (background_png, background_pngSize);
 
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (403, 166);
+    setSize (403, 200);
 
 
     //[Constructor] You can add your own custom stuff here..
+    statusBar->subscribeToParameters();
+
+    versionLabel->setFont(StatusBar::getFont());
+    versionLabel.get()->setJustificationType(Justification::centredRight);
     //[/Constructor]
 }
 
@@ -67,6 +80,8 @@ PluginEditor::~PluginEditor()
     frequencyKnob = nullptr;
     resonanceKnob = nullptr;
     valleySizeKnob = nullptr;
+    statusBar = nullptr;
+    versionLabel = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -80,7 +95,7 @@ void PluginEditor::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (Colours::red);
+    g.fillAll (Colour (0xfff9f2b9));
 
     g.setColour (Colours::black);
     g.drawImage (cachedImage_background_png,
@@ -96,6 +111,8 @@ void PluginEditor::resized()
     frequencyKnob->setBounds (144, 16, 113, 113);
     resonanceKnob->setBounds (16, 16, 66, 66);
     valleySizeKnob->setBounds (274, 16, 66, 66);
+    statusBar->setBounds (16, 168, 150, 32);
+    versionLabel->setBounds (248, 168, 150, 16);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -119,8 +136,8 @@ BEGIN_JUCER_METADATA
                  parentClasses="public AudioProcessorEditor" constructorParams="AudioProcessor *owner, teragon::ThreadsafePluginParameterSet &amp;p, teragon::ResourceCache *r"
                  variableInitialisers="AudioProcessorEditor(owner),&#10;parameters(p),&#10;resources(r)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="1" initialWidth="403" initialHeight="166">
-  <BACKGROUND backgroundColour="ffff0000">
+                 fixedSize="1" initialWidth="403" initialHeight="200">
+  <BACKGROUND backgroundColour="fff9f2b9">
     <IMAGE pos="0 0 403 166" resource="background_png" opacity="1" mode="0"/>
   </BACKGROUND>
   <GENERICCOMPONENT name="frequency knob" id="cbc3f5c5fff9e09b" memberName="frequencyKnob"
@@ -132,6 +149,12 @@ BEGIN_JUCER_METADATA
   <GENERICCOMPONENT name="valley size knob" id="1f8ba387e5cceed1" memberName="valleySizeKnob"
                     virtualName="teragon::ImageKnobSmall" explicitFocusOrder="0"
                     pos="274 16 66 66" class="Component" params="parameters,&#10;&quot;Valley Size&quot;,&#10;resources"/>
+  <GENERICCOMPONENT name="status bar" id="2340b7bd80c9851c" memberName="statusBar"
+                    virtualName="teragon::StatusBar" explicitFocusOrder="0" pos="16 168 150 32"
+                    class="Component" params="parameters,&#10;resources"/>
+  <GENERICCOMPONENT name="version label" id="1d7a11a128d30f53" memberName="versionLabel"
+                    virtualName="teragon::ParameterLabel" explicitFocusOrder="0"
+                    pos="248 168 150 16" class="Component" params="parameters,&#10;&quot;Version&quot;"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA
