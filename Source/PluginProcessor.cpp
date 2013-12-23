@@ -20,10 +20,11 @@ PluginParameterObserver() {
                                    kResonanceDefault);
     parameters.add(resonance);
 
-    valleySize = new FrequencyParameter("Valley Size",
-                                        kValleySizeMin,
-                                        kValleySizeMax,
-                                        kValleySizeDefault);
+    valleySize = new FloatParameter("Valley Size",
+                                    kValleySizeMin,
+                                    kValleySizeMax,
+                                    kValleySizeDefault);
+    valleySize->setUnit("Hz");
     parameters.add(valleySize);
 
     for(int i = 0; i < parameters.size(); ++i) {

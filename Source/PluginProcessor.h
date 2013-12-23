@@ -76,7 +76,7 @@ private:
     ThreadsafePluginParameterSet parameters;
     FrequencyParameter *frequency;
     FloatParameter *resonance;
-    FrequencyParameter *valleySize;
+    FloatParameter *valleySize;
 
     float maxFilterFrequency;
     float loFrequency;
