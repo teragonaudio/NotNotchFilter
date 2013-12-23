@@ -70,6 +70,7 @@ PluginEditor::~PluginEditor()
 
 
     //[Destructor]. You can add your own custom destruction code here..
+    delete resources;
     //[/Destructor]
 }
 
