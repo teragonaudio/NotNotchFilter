@@ -5,21 +5,21 @@
 DEPFLAGS := $(if $(word 2, $(TARGET_ARCH)), , -MMD)
 
 ifndef CONFIG
-  CONFIG=Debug
+  CONFIG=Debug-i386
 endif
 
-ifeq ($(CONFIG),Debug)
+ifeq ($(CONFIG),Debug-i386)
   BINDIR := build
   LIBDIR := build
-  OBJDIR := build/intermediate/Debug
+  OBJDIR := build/intermediate/Debug-i386
   OUTDIR := build
 
   ifeq ($(TARGET_ARCH),)
-    TARGET_ARCH := -march=native
+    TARGET_ARCH := -m32
   endif
 
   CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
-  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -g -ggdb -fPIC -O0 -I../../Third-Party/PluginParameters/include -I../../Third-Party/TeragonGuiComponents/Components/Source
+  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -g -ggdb -fPIC -O0
   CXXFLAGS += $(CFLAGS)
   LDFLAGS += $(TARGET_ARCH) -L$(BINDIR) -L$(LIBDIR) -shared -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
   LDDEPS :=
@@ -28,18 +28,58 @@ ifeq ($(CONFIG),Debug)
   BLDCMD = $(CXX) -o $(OUTDIR)/$(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(TARGET_ARCH)
 endif
 
-ifeq ($(CONFIG),Release)
+ifeq ($(CONFIG),Release-i386)
   BINDIR := build
   LIBDIR := build
-  OBJDIR := build/intermediate/Release
+  OBJDIR := build/intermediate/Release-i386
   OUTDIR := build
 
   ifeq ($(TARGET_ARCH),)
-    TARGET_ARCH := -march=native
+    TARGET_ARCH := -m32
   endif
 
   CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
-  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -fPIC -Os -I../../Third-Party/PluginParameters/include -I../../Third-Party/TeragonGuiComponents/Components/Source
+  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -fPIC -Os
+  CXXFLAGS += $(CFLAGS)
+  LDFLAGS += $(TARGET_ARCH) -L$(BINDIR) -L$(LIBDIR) -shared -fvisibility=hidden -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
+  LDDEPS :=
+  RESFLAGS :=  -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
+  TARGET := NotNotchFilter.so
+  BLDCMD = $(CXX) -o $(OUTDIR)/$(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(TARGET_ARCH)
+endif
+
+ifeq ($(CONFIG),Debug-x86_64)
+  BINDIR := build
+  LIBDIR := build
+  OBJDIR := build/intermediate/Debug-x86_64
+  OUTDIR := build
+
+  ifeq ($(TARGET_ARCH),)
+    TARGET_ARCH := -m64
+  endif
+
+  CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
+  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -g -ggdb -fPIC -O0
+  CXXFLAGS += $(CFLAGS)
+  LDFLAGS += $(TARGET_ARCH) -L$(BINDIR) -L$(LIBDIR) -shared -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
+  LDDEPS :=
+  RESFLAGS :=  -D "LINUX=1" -D "DEBUG=1" -D "_DEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
+  TARGET := NotNotchFilter.so
+  BLDCMD = $(CXX) -o $(OUTDIR)/$(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(TARGET_ARCH)
+endif
+
+ifeq ($(CONFIG),Release-x86_64)
+  BINDIR := build
+  LIBDIR := build
+  OBJDIR := build/intermediate/Release-x86_64
+  OUTDIR := build
+
+  ifeq ($(TARGET_ARCH),)
+    TARGET_ARCH := -m64
+  endif
+
+  CPPFLAGS := $(DEPFLAGS) -D "LINUX=1" -D "NDEBUG=1" -D "JUCER_LINUX_MAKE_7346DA2A=1" -I /usr/include -I /usr/include/freetype2 -I ../../Third-Party/vstsdk2.4 -I ../../JuceLibraryCode -I ../../JuceLibraryCode/modules
+  CFLAGS += $(CPPFLAGS) $(TARGET_ARCH) -fPIC -Os
   CXXFLAGS += $(CFLAGS)
   LDFLAGS += $(TARGET_ARCH) -L$(BINDIR) -L$(LIBDIR) -shared -fvisibility=hidden -L/usr/X11R6/lib/ -lX11 -lXext -lXinerama -ldl -lfreetype -lpthread -lrt 
   LDDEPS :=
@@ -49,6 +89,7 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(OBJDIR)/tinythread_51467623.o \
   $(OBJDIR)/ImageKnob_234e9ab6.o \
   $(OBJDIR)/ImageSlider_5ceaa0e1.o \
   $(OBJDIR)/IndicatorLight_81b8276c.o \
@@ -57,9 +98,8 @@ OBJECTS := \
   $(OBJDIR)/Resources_244c186a.o \
   $(OBJDIR)/StatusBar_62e48306.o \
   $(OBJDIR)/ThinButton_20dde050.o \
-  $(OBJDIR)/tinythread_51467623.o \
-  $(OBJDIR)/PluginEditor_94d4fb09.o \
   $(OBJDIR)/PluginProcessor_a059e380.o \
+  $(OBJDIR)/PluginEditor_94d4fb09.o \
   $(OBJDIR)/juce_audio_basics_2442e4ea.o \
   $(OBJDIR)/juce_audio_processors_44a134a2.o \
   $(OBJDIR)/juce_core_aff681cc.o \
@@ -89,6 +129,11 @@ clean:
 strip:
 	@echo Stripping NotNotchFilter
 	-@strip --strip-unneeded $(OUTDIR)/$(TARGET)
+
+$(OBJDIR)/tinythread_51467623.o: ../../Third-Party/TeragonGuiComponents/Components/PluginParameters/include/tinythread/source/tinythread.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling tinythread.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/ImageKnob_234e9ab6.o: ../../Third-Party/TeragonGuiComponents/Components/Source/ImageKnob.cpp
 	-@mkdir -p $(OBJDIR)
@@ -130,19 +175,14 @@ $(OBJDIR)/ThinButton_20dde050.o: ../../Third-Party/TeragonGuiComponents/Componen
 	@echo "Compiling ThinButton.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
-$(OBJDIR)/tinythread_51467623.o: ../../Third-Party/TeragonGuiComponents/Components/PluginParameters/include/tinythread/source/tinythread.cpp
+$(OBJDIR)/PluginProcessor_a059e380.o: ../../Source/PluginProcessor.cpp
 	-@mkdir -p $(OBJDIR)
-	@echo "Compiling tinythread.cpp"
+	@echo "Compiling PluginProcessor.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/PluginEditor_94d4fb09.o: ../../Source/PluginEditor.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling PluginEditor.cpp"
-	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
-
-$(OBJDIR)/PluginProcessor_a059e380.o: ../../Source/PluginProcessor.cpp
-	-@mkdir -p $(OBJDIR)
-	@echo "Compiling PluginProcessor.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/juce_audio_basics_2442e4ea.o: ../../JuceLibraryCode/modules/juce_audio_basics/juce_audio_basics.cpp
