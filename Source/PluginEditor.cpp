@@ -28,7 +28,7 @@ using namespace teragon;
 //[/MiscUserDefs]
 
 //==============================================================================
-PluginEditor::PluginEditor (AudioProcessor *owner, teragon::ThreadsafePluginParameterSet &p, teragon::ResourceCache *r)
+PluginEditor::PluginEditor (AudioProcessor *owner, teragon::ConcurrentParameterSet &p, teragon::ResourceCache *r)
     : AudioProcessorEditor(owner),
       parameters(p),
       resources(r)
@@ -133,7 +133,7 @@ void PluginEditor::resized()
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="PluginEditor" componentName=""
-                 parentClasses="public AudioProcessorEditor" constructorParams="AudioProcessor *owner, teragon::ThreadsafePluginParameterSet &amp;p, teragon::ResourceCache *r"
+                 parentClasses="public AudioProcessorEditor" constructorParams="AudioProcessor *owner, teragon::ConcurrentParameterSet &amp;p, teragon::ResourceCache *r"
                  variableInitialisers="AudioProcessorEditor(owner),&#10;parameters(p),&#10;resources(r)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="1" initialWidth="351" initialHeight="203">

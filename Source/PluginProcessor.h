@@ -20,7 +20,7 @@ static const float kValleySizeDefault = kValleySizeMin;
 static const float kMinimumNotchFrequency = 20.0f;
 
 
-class NotNotchFilterAudioProcessor : public AudioProcessor, public PluginParameterObserver {
+class NotNotchFilterAudioProcessor : public AudioProcessor, public ParameterObserver {
 public:
     NotNotchFilterAudioProcessor();
     ~NotNotchFilterAudioProcessor() {}
@@ -64,16 +64,16 @@ public:
     void getStateInformation(MemoryBlock& destData);
     void setStateInformation(const void *data, int sizeInBytes);
 
-    // PluginParameterObserver methods
+    // ParameterObserver methods
     bool isRealtimePriority() const { return true; }
-    void onParameterUpdated(const PluginParameter *parameter);
+    void onParameterUpdated(const Parameter *parameter);
 
 private:
     void recalculateCoefficients(const double sampleRate);
 
 private:
     // ParameterSet and cached parameters
-    ThreadsafePluginParameterSet parameters;
+    ConcurrentParameterSet parameters;
     FrequencyParameter *frequency;
     FloatParameter *resonance;
     FloatParameter *valleySize;

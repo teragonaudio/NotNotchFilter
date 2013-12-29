@@ -7,7 +7,7 @@
 
 NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() :
 AudioProcessor(),
-PluginParameterObserver() {
+ParameterObserver() {
     frequency = new FrequencyParameter("Frequency",
                                        kFrequencyMin,
                                        kFrequencyMax,
@@ -145,8 +145,8 @@ void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer &buffer, MidiB
 //==============================================================================
 void NotNotchFilterAudioProcessor::getStateInformation(MemoryBlock &destData) {
     XmlElement xml(getName());
-    for(int i = 0; i < parameters.size(); i++) {
-        PluginParameter *parameter = parameters[i];
+    for(size_t i = 0; i < parameters.size(); i++) {
+        Parameter *parameter = parameters[i];
         xml.setAttribute(parameter->getSafeName().c_str(), parameter->getValue());
     }
     copyXmlToBinary(xml, destData);
@@ -155,8 +155,8 @@ void NotNotchFilterAudioProcessor::getStateInformation(MemoryBlock &destData) {
 void NotNotchFilterAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
     ScopedPointer<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if(xmlState != 0 && xmlState->hasTagName(getName())) {
-        for(int i = 0; i < parameters.size(); i++) {
-            PluginParameter *parameter = parameters[i];
+        for(size_t i = 0; i < parameters.size(); i++) {
+            Parameter *parameter = parameters[i];
             if(xmlState->hasAttribute(parameter->getSafeName().c_str())) {
                 parameters.set(parameter, xmlState->getDoubleAttribute(parameter->getSafeName().c_str()));
             }
