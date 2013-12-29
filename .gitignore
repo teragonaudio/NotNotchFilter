@@ -1,15 +1,19 @@
-.DS_Store
-xcuserdata
-xcshareddata
-*.orig
-Builds/Linux/build/*
-Builds/MacOSX/.idea/workspace.xml
-Builds/MacOSX/build
-Builds/VisualStudio2010/Debug/*
-Builds/VisualStudio2010/Release/*
-Builds/VisualStudio2010/ipch/*
-Builds/VisualStudio2010/*.user
-Builds/VisualStudio2010/*.sdf
-Builds/VisualStudio2010/*.opensdf
-Third-Party/vstsdk2.4/*
-Builds/Linux/nbproject/
+# Temporary files
+*.swp
+*~
+*.o
+*.so
+*.obj
+Builds/*
+
+# Vim helpers
+tags
+cscope.out
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+Makefile.in
+*.cmake
