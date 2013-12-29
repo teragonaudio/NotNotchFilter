@@ -54,11 +54,11 @@ void NotNotchFilterAudioProcessor::reset() {
     }
 }
 
-void NotNotchFilterAudioProcessor::onParameterUpdated(const PluginParameter *parameter) {
+void NotNotchFilterAudioProcessor::onParameterUpdated(const Parameter *) {
     recalculateCoefficients(getSampleRate());
 }
 
-void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int) {
     recalculateCoefficients(sampleRate);
     reset();
 }
