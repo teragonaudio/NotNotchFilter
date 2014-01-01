@@ -6,8 +6,7 @@
 #endif
 
 NotNotchFilterAudioProcessor::NotNotchFilterAudioProcessor() :
-AudioProcessor(),
-ParameterObserver() {
+TeragonPluginBase(), ParameterObserver() {
     frequency = new FrequencyParameter("Frequency",
                                        kFrequencyMin,
                                        kFrequencyMax,
@@ -34,31 +33,14 @@ ParameterObserver() {
     ParameterString version = ProjectInfo::projectName;
     version.append(" version ").append(ProjectInfo::versionString);
     parameters.add(new StringParameter("Version", version));
-
-    reset();
-}
-
-void NotNotchFilterAudioProcessor::reset() {
-    for(int i = 0; i < 2; i++) {
-        hiLastInput1[i] = 0.0f;
-        hiLastInput2[i] = 0.0f;
-        hiLastInput3[i] = 0.0f;
-        hiLastOutput1[i] = 0.0f;
-        hiLastOutput2[i] = 0.0f;
-
-        loLastInput1[i] = 0.0f;
-        loLastInput2[i] = 0.0f;
-        loLastInput3[i] = 0.0f;
-        loLastOutput1[i] = 0.0f;
-        loLastOutput2[i] = 0.0f;
-    }
 }
 
 void NotNotchFilterAudioProcessor::onParameterUpdated(const Parameter *) {
     recalculateCoefficients(getSampleRate());
 }
 
-void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int) {
+void NotNotchFilterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+    TeragonPluginBase::prepareToPlay(sampleRate, samplesPerBlock);
     recalculateCoefficients(sampleRate);
     reset();
 }
@@ -93,8 +75,24 @@ void NotNotchFilterAudioProcessor::recalculateCoefficients(const double sampleRa
     loCoeffB2 = loCoeffA1 * (1.0f - (filterResonance * loCoeffConstant) + (loCoeffConstant * loCoeffConstant));
 }
 
+void NotNotchFilterAudioProcessor::reset() {
+    for(int i = 0; i < 2; i++) {
+        hiLastInput1[i] = 0.0f;
+        hiLastInput2[i] = 0.0f;
+        hiLastInput3[i] = 0.0f;
+        hiLastOutput1[i] = 0.0f;
+        hiLastOutput2[i] = 0.0f;
+
+        loLastInput1[i] = 0.0f;
+        loLastInput2[i] = 0.0f;
+        loLastInput3[i] = 0.0f;
+        loLastOutput1[i] = 0.0f;
+        loLastOutput2[i] = 0.0f;
+    }
+}
+
 void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midiMessages) {
-    parameters.processRealtimeEvents();
+    TeragonPluginBase::processBlock(buffer, midiMessages);
 
     // Pass audio through if valley size is set to min. We want to have a clean
     // signal when the filter is off.
@@ -133,38 +131,14 @@ void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer &buffer, MidiB
             }
         }
     }
-
-    // In case we have more outputs than inputs, we'll clear any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    for(int i = getNumInputChannels(); i < getNumOutputChannels(); ++i) {
-        buffer.clear(i, 0, buffer.getNumSamples());
-    }
 }
 
-//==============================================================================
-void NotNotchFilterAudioProcessor::getStateInformation(MemoryBlock &destData) {
-    XmlElement xml(getName());
-    for(size_t i = 0; i < parameters.size(); i++) {
-        Parameter *parameter = parameters[i];
-        xml.setAttribute(parameter->getSafeName().c_str(), parameter->getValue());
-    }
-    copyXmlToBinary(xml, destData);
+void NotNotchFilterAudioProcessor::releaseResources() {
+    TeragonPluginBase::releaseResources();
 }
 
-void NotNotchFilterAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
-    ScopedPointer<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if(xmlState != 0 && xmlState->hasTagName(getName())) {
-        for(size_t i = 0; i < parameters.size(); i++) {
-            Parameter *parameter = parameters[i];
-            if(xmlState->hasAttribute(parameter->getSafeName().c_str())) {
-                parameters.set(parameter, xmlState->getDoubleAttribute(parameter->getSafeName().c_str()));
-            }
-        }
-        parameters.processRealtimeEvents();
-        recalculateCoefficients(getSampleRate());
-        reset();
-    }
+AudioProcessorEditor *NotNotchFilterAudioProcessor::createEditor() {
+    return new PluginEditor(this, parameters, Resources::getCache());
 }
 
 AudioProcessor *JUCE_CALLTYPE createPluginFilter() {
