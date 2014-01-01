@@ -85,6 +85,16 @@
   </EXPORTFORMATS>
   <MAINGROUP id="Fyqdnh" name="NotNotchFilter">
     <GROUP id="{42779670-7EBB-6F9C-0A18-8711F81B5812}" name="Components">
+      <GROUP id="{103C5FE0-7904-7877-D35F-38798D264C2D}" name="Plugin">
+        <GROUP id="{D1FAD171-823F-8E74-990B-C4B103218255}" name="arduino-base64">
+          <FILE id="AK1JxF" name="Base64.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/Plugin/arduino-base64/Base64.cpp"/>
+          <FILE id="OUtiyb" name="Base64.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/Plugin/arduino-base64/Base64.h"/>
+        </GROUP>
+        <FILE id="jCsATy" name="TeragonPluginBase.cpp" compile="1" resource="0"
+              file="Third-Party/TeragonGuiComponents/Components/Plugin/TeragonPluginBase.cpp"/>
+        <FILE id="DgsE1l" name="TeragonPluginBase.h" compile="0" resource="0"
+              file="Third-Party/TeragonGuiComponents/Components/Plugin/TeragonPluginBase.h"/>
+      </GROUP>
       <GROUP id="{3E53114B-1226-72B1-BC72-462AA651FD63}" name="PluginParameters">
         <GROUP id="{9D50CB75-2512-B6E9-C6E0-2BDA9CFCD0E4}" name="include">
           <GROUP id="{B095B30A-2CFD-9BF9-8A5A-33D73D9C3AF3}" name="readerwriterqueue">
