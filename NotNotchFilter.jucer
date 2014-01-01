@@ -173,13 +173,15 @@
       </GROUP>
     </GROUP>
     <GROUP id="{B522E367-7924-268E-2867-794D2485D3B5}" name="Source">
+      <FILE id="Wa2mKo" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="piIL6W" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="TXC19l" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="aWOdu9" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="Wa2mKo" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="piIL6W" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="qfLjZX" name="ValleyParameter.h" compile="0" resource="0"
+            file="Source/ValleyParameter.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

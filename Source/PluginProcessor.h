@@ -6,6 +6,7 @@
 #include "PluginParameters.h"
 #include "PluginEditor.h"
 #include "Resources.h"
+#include "ValleyParameter.h"
 
 using namespace teragon;
 
@@ -15,9 +16,6 @@ static const float kFrequencyMax = 1400.0f;
 static const float kResonanceMin = 0.1f;
 static const float kResonanceDefault = 1.0f;
 static const float kResonanceMax = sqrtf(2.0);
-static const float kValleySizeMin = 0.1f;
-static const float kValleySizeMax = 20000.0f;
-static const float kValleySizeDefault = kValleySizeMin;
 static const float kMinimumNotchFrequency = 20.0f;
 
 class NotNotchFilterAudioProcessor : public TeragonPluginBase, public ParameterObserver {
@@ -45,7 +43,7 @@ private:
     // Cached parameters
     FrequencyParameter *frequency;
     FloatParameter *resonance;
-    FloatParameter *valleySize;
+    ValleyParameter *valleySize;
 
     float maxFilterFrequency;
     float loFrequency;

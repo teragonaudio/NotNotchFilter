@@ -19,11 +19,7 @@ TeragonPluginBase(), ParameterObserver() {
                                    kResonanceDefault);
     parameters.add(resonance);
 
-    valleySize = new FloatParameter("Valley Size",
-                                    kValleySizeMin,
-                                    kValleySizeMax,
-                                    kValleySizeDefault);
-    valleySize->setUnit("Hz");
+    valleySize = new ValleyParameter("Valley Size");
     parameters.add(valleySize);
 
     for(int i = 0; i < parameters.size(); ++i) {
@@ -96,7 +92,7 @@ void NotNotchFilterAudioProcessor::processBlock(AudioSampleBuffer &buffer, MidiB
 
     // Pass audio through if valley size is set to min. We want to have a clean
     // signal when the filter is off.
-    if(valleySize->getValue() > kValleySizeMin) {
+    if(valleySize->getValue() > 0) {
         for(int channel = 0; channel < getNumInputChannels(); ++channel) {
             float *channelData = buffer.getSampleData(channel);
             float hiOutput, loOutput;
