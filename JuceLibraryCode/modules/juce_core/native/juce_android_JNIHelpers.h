@@ -1,30 +1,33 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the juce_core module of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission to use, copy, modify, and/or distribute this software for any purpose with
+   or without fee is hereby granted, provided that the above copyright notice and this
+   permission notice appear in all copies.
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+   TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN
+   NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+   DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+   IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-   JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
-   WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-   A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   ------------------------------------------------------------------------------
 
-  ------------------------------------------------------------------------------
+   NOTE! This permissive ISC license applies ONLY to files within the juce_core module!
+   All other JUCE modules are covered by a dual GPL/commercial license, so if you are
+   using any other modules, be sure to check that you also comply with their license.
 
-   To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   For more details, visit www.juce.com
 
   ==============================================================================
 */
 
-#ifndef __JUCE_ANDROID_JNIHELPERS_JUCEHEADER__
-#define __JUCE_ANDROID_JNIHELPERS_JUCEHEADER__
+#ifndef JUCE_ANDROID_JNIHELPERS_H_INCLUDED
+#define JUCE_ANDROID_JNIHELPERS_H_INCLUDED
 
 #if ! (defined (JUCE_ANDROID_ACTIVITY_CLASSNAME) && defined (JUCE_ANDROID_ACTIVITY_CLASSPATH))
  #error "The JUCE_ANDROID_ACTIVITY_CLASSNAME and JUCE_ANDROID_ACTIVITY_CLASSPATH macros must be set!"
@@ -38,7 +41,7 @@ class GlobalRef
 {
 public:
     inline GlobalRef() noexcept                 : obj (0) {}
-    inline explicit GlobalRef (jobject obj_)    : obj (retain (obj_)) {}
+    inline explicit GlobalRef (jobject o)       : obj (retain (o)) {}
     inline GlobalRef (const GlobalRef& other)   : obj (retain (other.obj)) {}
     ~GlobalRef()                                { clear(); }
 
@@ -97,9 +100,9 @@ private:
     //==============================================================================
     jobject obj;
 
-    static inline jobject retain (jobject obj_)
+    static inline jobject retain (jobject obj)
     {
-        return obj_ == 0 ? 0 : getEnv()->NewGlobalRef (obj_);
+        return obj == 0 ? 0 : getEnv()->NewGlobalRef (obj);
     }
 };
 
@@ -108,7 +111,7 @@ template <typename JavaType>
 class LocalRef
 {
 public:
-    explicit inline LocalRef (JavaType obj_) noexcept   : obj (obj_) {}
+    explicit inline LocalRef (JavaType o) noexcept      : obj (o) {}
     inline LocalRef (const LocalRef& other) noexcept    : obj (retain (other.obj)) {}
     ~LocalRef()                                         { clear(); }
 
@@ -132,9 +135,9 @@ public:
 private:
     JavaType obj;
 
-    static JavaType retain (JavaType obj_)
+    static JavaType retain (JavaType obj)
     {
-        return obj_ == 0 ? 0 : (JavaType) getEnv()->NewLocalRef (obj_);
+        return obj == 0 ? 0 : (JavaType) getEnv()->NewLocalRef (obj);
     }
 };
 
@@ -172,7 +175,7 @@ namespace
 class JNIClassBase
 {
 public:
-    explicit JNIClassBase (const char* classPath_);
+    explicit JNIClassBase (const char* classPath);
     virtual ~JNIClassBase();
 
     inline operator jclass() const noexcept { return classRef; }
@@ -196,7 +199,7 @@ private:
     void initialise (JNIEnv*);
     void release (JNIEnv*);
 
-    JUCE_DECLARE_NON_COPYABLE (JNIClassBase);
+    JUCE_DECLARE_NON_COPYABLE (JNIClassBase)
 };
 
 //==============================================================================
@@ -239,7 +242,7 @@ public:
     //==============================================================================
     GlobalRef activity;
     String appFile, appDataDir;
-    int screenWidth, screenHeight;
+    int screenWidth, screenHeight, dpi;
 };
 
 extern AndroidSystem android;
@@ -346,7 +349,7 @@ extern ThreadLocalJNIEnvHolder threadLocalJNIEnvHolder;
 
 //==============================================================================
 #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD) \
- METHOD (createNewView,          "createNewView",        "(Z)L" JUCE_ANDROID_ACTIVITY_CLASSPATH "$ComponentPeerView;") \
+ METHOD (createNewView,          "createNewView",        "(ZJ)L" JUCE_ANDROID_ACTIVITY_CLASSPATH "$ComponentPeerView;") \
  METHOD (deleteView,             "deleteView",           "(L" JUCE_ANDROID_ACTIVITY_CLASSPATH "$ComponentPeerView;)V") \
  METHOD (postMessage,            "postMessage",          "(J)V") \
  METHOD (finish,                 "finish",               "()V") \
@@ -360,6 +363,7 @@ extern ThreadLocalJNIEnvHolder threadLocalJNIEnvHolder;
  METHOD (showOkCancelBox,        "showOkCancelBox",      "(Ljava/lang/String;Ljava/lang/String;J)V") \
  METHOD (showYesNoCancelBox,     "showYesNoCancelBox",   "(Ljava/lang/String;Ljava/lang/String;J)V") \
  STATICMETHOD (getLocaleValue,   "getLocaleValue",       "(Z)Ljava/lang/String;") \
+ METHOD (scanFile,               "scanFile",             "(Ljava/lang/String;)V")
 
 DECLARE_JNI_CLASS (JuceAppActivity, JUCE_ANDROID_ACTIVITY_CLASSPATH);
 #undef JNI_CLASS_MEMBERS
@@ -400,4 +404,4 @@ DECLARE_JNI_CLASS (Matrix, "android/graphics/Matrix");
 DECLARE_JNI_CLASS (RectClass, "android/graphics/Rect");
 #undef JNI_CLASS_MEMBERS
 
-#endif   // __JUCE_ANDROID_JNIHELPERS_JUCEHEADER__
+#endif   // JUCE_ANDROID_JNIHELPERS_H_INCLUDED

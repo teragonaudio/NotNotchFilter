@@ -1,35 +1,29 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
 
-#ifndef __JUCE_TYPEFACE_JUCEHEADER__
-#define __JUCE_TYPEFACE_JUCEHEADER__
-
-class Path;
-class Font;
-class EdgeTable;
-class AffineTransform;
+#ifndef JUCE_TYPEFACE_H_INCLUDED
+#define JUCE_TYPEFACE_H_INCLUDED
 
 
 //==============================================================================
@@ -94,24 +88,24 @@ public:
     */
     virtual float getDescent() const = 0;
 
+    /** Returns the value by which you should multiply a juce font-height value to
+        convert it to the equivalent point-size.
+    */
+    virtual float getHeightToPointsFactor() const = 0;
+
     /** Measures the width of a line of text.
-
         The distance returned is based on the font having an normalised height of 1.0.
-
         You should never need to call this directly! Use Font::getStringWidth() instead!
     */
     virtual float getStringWidth (const String& text) = 0;
 
     /** Converts a line of text into its glyph numbers and their positions.
-
         The distances returned are based on the font having an normalised height of 1.0.
-
         You should never need to call this directly! Use Font::getGlyphPositions() instead!
     */
     virtual void getGlyphPositions (const String& text, Array <int>& glyphs, Array<float>& xOffsets) = 0;
 
     /** Returns the outline for a glyph.
-
         The path returned will be normalised to a font height of 1.0.
     */
     virtual bool getOutlineForGlyph (int glyphNumber, Path& path) = 0;
@@ -126,6 +120,14 @@ public:
     /** Changes the number of fonts that are cached in memory. */
     static void setTypefaceCacheSize (int numFontsToCache);
 
+    /** Clears any fonts that are currently cached in memory. */
+    static void clearTypefaceCache();
+
+    /** On some platforms, this allows a specific path to be scanned.
+        Currently only available when using FreeType.
+    */
+    static void scanFolderForFonts (const File& folder);
+
 protected:
     //==============================================================================
     String name, style;
@@ -135,8 +137,8 @@ protected:
     static Ptr getFallbackTypeface();
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Typeface);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Typeface)
 };
 
 
-#endif   // __JUCE_TYPEFACE_JUCEHEADER__
+#endif   // JUCE_TYPEFACE_H_INCLUDED

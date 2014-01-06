@@ -1,24 +1,23 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
@@ -121,7 +120,7 @@ public:
 private:
     DynamicLibrary direct2dDll, directWriteDll;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Direct2DFactories);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Direct2DFactories)
 };
 
 //==================================================================================================
@@ -130,7 +129,7 @@ class WindowsDirectWriteTypeface  : public Typeface
 public:
     WindowsDirectWriteTypeface (const Font& font, IDWriteFontCollection* fontCollection)
         : Typeface (font.getTypefaceName(), font.getTypefaceStyle()),
-          ascent (0.0f)
+          unitsToHeightScaleFactor (1.0f), heightToPointsFactor (1.0f), ascent (0.0f)
     {
         jassert (fontCollection != nullptr);
 
@@ -154,10 +153,13 @@ public:
         {
             hr = dwFontFamily->GetFont (i, dwFont.resetAndGetPointerAddress());
 
+            if (i == 0)
+                break;
+
             ComSmartPtr<IDWriteLocalizedStrings> faceNames;
             hr = dwFont->GetFaceNames (faceNames.resetAndGetPointerAddress());
 
-            if (i == 0 || font.getTypefaceStyle() == getLocalisedName (faceNames))
+            if (font.getTypefaceStyle() == getLocalisedName (faceNames))
                 break;
         }
 
@@ -175,14 +177,19 @@ public:
         ascent /= totalSize;
         unitsToHeightScaleFactor = designUnitsPerEm / totalSize;
 
+        HDC tempDC = GetDC (0);
+        heightToPointsFactor = (72.0f / GetDeviceCaps (tempDC, LOGPIXELSY)) * unitsToHeightScaleFactor;
+        ReleaseDC (0, tempDC);
+
         const float pathAscent  = (1024.0f * dwFontMetrics.ascent)  / designUnitsPerEm;
         const float pathDescent = (1024.0f * dwFontMetrics.descent) / designUnitsPerEm;
         const float pathScale   = 1.0f / (std::abs (pathAscent) + std::abs (pathDescent));
-        pathTransform = AffineTransform::scale (pathScale, pathScale);
+        pathTransform = AffineTransform::scale (pathScale);
     }
 
-    float getAscent() const     { return ascent; }
-    float getDescent() const    { return 1.0f - ascent; }
+    float getAscent() const                 { return ascent; }
+    float getDescent() const                { return 1.0f - ascent; }
+    float getHeightToPointsFactor() const   { return heightToPointsFactor; }
 
     float getStringWidth (const String& text)
     {
@@ -250,18 +257,17 @@ public:
     }
 
     IDWriteFontFace* getIDWriteFontFace() const noexcept    { return dwFontFace; }
-    float getFontHeightToEmSizeFactor() const noexcept      { return unitsToHeightScaleFactor; }
 
 private:
     ComSmartPtr<IDWriteFontFace> dwFontFace;
-    float unitsToHeightScaleFactor, ascent;
+    float unitsToHeightScaleFactor, heightToPointsFactor, ascent;
     int designUnitsPerEm;
     AffineTransform pathTransform;
 
     class PathGeometrySink  : public ComBaseClassHelper<IDWriteGeometrySink>
     {
     public:
-        PathGeometrySink()   { resetReferenceCount(); }
+        PathGeometrySink() : ComBaseClassHelper<IDWriteGeometrySink> (0) {}
 
         void __stdcall AddBeziers (const D2D1_BEZIER_SEGMENT *beziers, UINT beziersCount)
         {
@@ -301,10 +307,10 @@ private:
         Path path;
 
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PathGeometrySink);
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PathGeometrySink)
     };
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowsDirectWriteTypeface);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowsDirectWriteTypeface)
 };
 
 #endif

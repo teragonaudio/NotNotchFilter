@@ -1,24 +1,27 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the juce_core module of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission to use, copy, modify, and/or distribute this software for any purpose with
+   or without fee is hereby granted, provided that the above copyright notice and this
+   permission notice appear in all copies.
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+   TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN
+   NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+   DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+   IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-   JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
-   WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-   A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   ------------------------------------------------------------------------------
 
-  ------------------------------------------------------------------------------
+   NOTE! This permissive ISC license applies ONLY to files within the juce_core module!
+   All other JUCE modules are covered by a dual GPL/commercial license, so if you are
+   using any other modules, be sure to check that you also comply with their license.
 
-   To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   For more details, visit www.juce.com
 
   ==============================================================================
 */
@@ -30,48 +33,6 @@
 #ifndef INTERNET_OPTION_DISABLE_AUTODIAL
  #define INTERNET_OPTION_DISABLE_AUTODIAL 70
 #endif
-
-//==============================================================================
-#ifndef WORKAROUND_TIMEOUT_BUG
- //#define WORKAROUND_TIMEOUT_BUG 1
-#endif
-
-#if WORKAROUND_TIMEOUT_BUG
-// Required because of a Microsoft bug in setting a timeout
-class InternetConnectThread  : public Thread
-{
-public:
-    InternetConnectThread (URL_COMPONENTS& uc_, HINTERNET sessionHandle_, HINTERNET& connection_, const bool isFtp_)
-        : Thread ("Internet"), uc (uc_), sessionHandle (sessionHandle_), connection (connection_), isFtp (isFtp_)
-    {
-        startThread();
-    }
-
-    ~InternetConnectThread()
-    {
-        stopThread (60000);
-    }
-
-    void run()
-    {
-        connection = InternetConnect (sessionHandle, uc.lpszHostName,
-                                      uc.nPort, _T(""), _T(""),
-                                      isFtp ? INTERNET_SERVICE_FTP
-                                            : INTERNET_SERVICE_HTTP,
-                                      0, 0);
-        notify();
-    }
-
-private:
-    URL_COMPONENTS& uc;
-    HINTERNET sessionHandle;
-    HINTERNET& connection;
-    const bool isFtp;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (InternetConnectThread);
-};
-#endif
-
 
 //==============================================================================
 class WebInputStream  : public InputStream
@@ -97,7 +58,7 @@ public:
                 if (HttpQueryInfo (request, HTTP_QUERY_RAW_HEADERS_CRLF, buffer.getData(), &bufferSizeBytes, 0))
                 {
                     StringArray headersArray;
-                    headersArray.addLines (reinterpret_cast <const WCHAR*> (buffer.getData()));
+                    headersArray.addLines (String (reinterpret_cast<const WCHAR*> (buffer.getData())));
 
                     for (int i = 0; i < headersArray.size(); ++i)
                     {
@@ -115,7 +76,6 @@ public:
                 if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
                     break;
             }
-
         }
     }
 
@@ -255,31 +215,19 @@ private:
         else if (timeOutMs < 0)
             timeOutMs = -1;
 
-        InternetSetOption (sessionHandle, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOutMs, sizeof (timeOutMs));
+        applyTimeout (sessionHandle, INTERNET_OPTION_CONNECT_TIMEOUT);
+        applyTimeout (sessionHandle, INTERNET_OPTION_RECEIVE_TIMEOUT);
+        applyTimeout (sessionHandle, INTERNET_OPTION_SEND_TIMEOUT);
+        applyTimeout (sessionHandle, INTERNET_OPTION_DATA_RECEIVE_TIMEOUT);
+        applyTimeout (sessionHandle, INTERNET_OPTION_DATA_SEND_TIMEOUT);
 
         const bool isFtp = address.startsWithIgnoreCase ("ftp:");
 
-      #if WORKAROUND_TIMEOUT_BUG
-        connection = 0;
-
-        {
-            InternetConnectThread connectThread (uc, sessionHandle, connection, isFtp);
-            connectThread.wait (timeOutMs);
-
-            if (connection == 0)
-            {
-                InternetCloseHandle (sessionHandle);
-                sessionHandle = 0;
-            }
-        }
-      #else
         connection = InternetConnect (sessionHandle, uc.lpszHostName, uc.nPort,
                                       uc.lpszUserName, uc.lpszPassword,
                                       isFtp ? (DWORD) INTERNET_SERVICE_FTP
                                             : (DWORD) INTERNET_SERVICE_HTTP,
                                       0, 0);
-      #endif
-
         if (connection != 0)
         {
             if (isFtp)
@@ -290,10 +238,15 @@ private:
         }
     }
 
+    void applyTimeout (HINTERNET sessionHandle, const DWORD option)
+    {
+        InternetSetOption (sessionHandle, option, &timeOutMs, sizeof (timeOutMs));
+    }
+
     void openHTTPConnection (URL_COMPONENTS& uc, URL::OpenStreamProgressCallback* progressCallback,
                              void* progressCallbackContext)
     {
-        const TCHAR* mimeTypes[] = { _T("*/*"), 0 };
+        const TCHAR* mimeTypes[] = { _T("*/*"), nullptr };
 
         DWORD flags = INTERNET_FLAG_RELOAD | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_NO_COOKIES;
 
@@ -349,7 +302,7 @@ private:
         close();
     }
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WebInputStream);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WebInputStream)
 };
 
 InputStream* URL::createNativeStream (const String& address, bool isPost, const MemoryBlock& postData,
@@ -365,27 +318,39 @@ InputStream* URL::createNativeStream (const String& address, bool isPost, const 
 
 
 //==============================================================================
-namespace MACAddressHelpers
+struct GetAdaptersInfoHelper
 {
-    void getViaGetAdaptersInfo (Array<MACAddress>& result)
+    bool callGetAdaptersInfo()
     {
         DynamicLibrary dll ("iphlpapi.dll");
         JUCE_LOAD_WINAPI_FUNCTION (dll, GetAdaptersInfo, getAdaptersInfo, DWORD, (PIP_ADAPTER_INFO, PULONG))
 
-        if (getAdaptersInfo != nullptr)
+        if (getAdaptersInfo == nullptr)
+            return false;
+
+        adapterInfo.malloc (1);
+        ULONG len = sizeof (IP_ADAPTER_INFO);
+
+        if (getAdaptersInfo (adapterInfo, &len) == ERROR_BUFFER_OVERFLOW)
+            adapterInfo.malloc (len, 1);
+
+        return getAdaptersInfo (adapterInfo, &len) == NO_ERROR;
+    }
+
+    HeapBlock<IP_ADAPTER_INFO> adapterInfo;
+};
+
+namespace MACAddressHelpers
+{
+    void getViaGetAdaptersInfo (Array<MACAddress>& result)
+    {
+        GetAdaptersInfoHelper gah;
+
+        if (gah.callGetAdaptersInfo())
         {
-            ULONG len = sizeof (IP_ADAPTER_INFO);
-            HeapBlock<IP_ADAPTER_INFO> adapterInfo (1);
-
-            if (getAdaptersInfo (adapterInfo, &len) == ERROR_BUFFER_OVERFLOW)
-                adapterInfo.malloc (len, 1);
-
-            if (getAdaptersInfo (adapterInfo, &len) == NO_ERROR)
-            {
-                for (PIP_ADAPTER_INFO adapter = adapterInfo; adapter != nullptr; adapter = adapter->Next)
-                    if (adapter->AddressLength >= 6)
-                        result.addIfNotAlreadyThere (MACAddress (adapter->Address));
-            }
+            for (PIP_ADAPTER_INFO adapter = gah.adapterInfo; adapter != nullptr; adapter = adapter->Next)
+                if (adapter->AddressLength >= 6)
+                    result.addIfNotAlreadyThere (MACAddress (adapter->Address));
         }
     }
 
@@ -425,7 +390,8 @@ namespace MACAddressHelpers
                         NAME_BUFFER    NameBuff [30];
                     };
 
-                    ASTAT astat = { 0 };
+                    ASTAT astat;
+                    zerostruct (astat);
                     ncb.ncb_buffer = (unsigned char*) &astat;
                     ncb.ncb_length = sizeof (ASTAT);
 
@@ -443,11 +409,29 @@ void MACAddress::findAllAddresses (Array<MACAddress>& result)
     MACAddressHelpers::getViaNetBios (result);
 }
 
+void IPAddress::findAllAddresses (Array<IPAddress>& result)
+{
+    result.addIfNotAlreadyThere (IPAddress::local());
+
+    GetAdaptersInfoHelper gah;
+
+    if (gah.callGetAdaptersInfo())
+    {
+        for (PIP_ADAPTER_INFO adapter = gah.adapterInfo; adapter != nullptr; adapter = adapter->Next)
+        {
+            IPAddress ip (adapter->IpAddressList.IpAddress.String);
+
+            if (ip != IPAddress::any())
+                result.addIfNotAlreadyThere (ip);
+        }
+    }
+}
+
 //==============================================================================
-bool Process::openEmailWithAttachments (const String& targetEmailAddress,
-                                        const String& emailSubject,
-                                        const String& bodyText,
-                                        const StringArray& filesToAttach)
+bool JUCE_CALLTYPE Process::openEmailWithAttachments (const String& targetEmailAddress,
+                                                      const String& emailSubject,
+                                                      const String& bodyText,
+                                                      const StringArray& filesToAttach)
 {
     DynamicLibrary dll ("MAPI32.dll");
     JUCE_LOAD_WINAPI_FUNCTION (dll, MAPISendMail, mapiSendMail,
@@ -457,15 +441,15 @@ bool Process::openEmailWithAttachments (const String& targetEmailAddress,
         return false;
 
     MapiMessage message = { 0 };
-    message.lpszSubject = (LPSTR) emailSubject.toUTF8().getAddress();
-    message.lpszNoteText = (LPSTR) bodyText.toUTF8().getAddress();
+    message.lpszSubject = (LPSTR) emailSubject.toRawUTF8();
+    message.lpszNoteText = (LPSTR) bodyText.toRawUTF8();
 
     MapiRecipDesc recip = { 0 };
     recip.ulRecipClass = MAPI_TO;
     String targetEmailAddress_ (targetEmailAddress);
     if (targetEmailAddress_.isEmpty())
         targetEmailAddress_ = " "; // (Windows Mail can't deal with a blank address)
-    recip.lpszName = (LPSTR) targetEmailAddress_.toUTF8().getAddress();
+    recip.lpszName = (LPSTR) targetEmailAddress_.toRawUTF8();
     message.nRecipCount = 1;
     message.lpRecips = &recip;
 
@@ -478,7 +462,7 @@ bool Process::openEmailWithAttachments (const String& targetEmailAddress,
     for (int i = 0; i < filesToAttach.size(); ++i)
     {
         files[i].nPosition = (ULONG) -1;
-        files[i].lpszPathName = (LPSTR) filesToAttach[i].toUTF8().getAddress();
+        files[i].lpszPathName = (LPSTR) filesToAttach[i].toRawUTF8();
     }
 
     return mapiSendMail (0, 0, &message, MAPI_DIALOG | MAPI_LOGON_UI, 0) == SUCCESS_SUCCESS;

@@ -1,24 +1,23 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
@@ -158,13 +157,13 @@ StringArray Font::findAllTypefaceStyles (const String& family)
     return results;
 }
 
-extern bool juce_IsRunningInWine();
+extern bool juce_isRunningInWine();
 
 struct DefaultFontNames
 {
     DefaultFontNames()
     {
-        if (juce_IsRunningInWine())
+        if (juce_isRunningInWine())
         {
             // If we're running in Wine, then use fonts that might be available on Linux..
             defaultSans     = "Bitstream Vera Sans";
@@ -174,7 +173,7 @@ struct DefaultFontNames
         else
         {
             defaultSans     = "Verdana";
-            defaultSerif    = "Times";
+            defaultSerif    = "Times New Roman";
             defaultFixed    = "Lucida Console";
             defaultFallback = "Tahoma";  // (contains plenty of unicode characters)
         }
@@ -210,13 +209,14 @@ public:
           fontH (0),
           previousFontH (0),
           dc (CreateCompatibleDC (0)),
-          ascent (1.0f),
+          ascent (1.0f), heightToPointsFactor (1.0f),
           defaultGlyph (-1)
     {
         loadFont();
 
         if (GetTextMetrics (dc, &tm))
         {
+            heightToPointsFactor = (72.0f / GetDeviceCaps (dc, LOGPIXELSY)) * heightInPoints / (float) tm.tmHeight;
             ascent = tm.tmAscent / (float) tm.tmHeight;
             defaultGlyph = getGlyphForChar (dc, tm.tmDefaultChar);
             createKerningPairs (dc, (float) tm.tmHeight);
@@ -232,8 +232,9 @@ public:
             DeleteObject (fontH);
     }
 
-    float getAscent() const     { return ascent; }
-    float getDescent() const    { return 1.0f - ascent; }
+    float getAscent() const                 { return ascent; }
+    float getDescent() const                { return 1.0f - ascent; }
+    float getHeightToPointsFactor() const   { return heightToPointsFactor; }
 
     float getStringWidth (const String& text)
     {
@@ -352,8 +353,8 @@ private:
     HGDIOBJ previousFontH;
     HDC dc;
     TEXTMETRIC tm;
-    float ascent;
-    int defaultGlyph;
+    float ascent, heightToPointsFactor;
+    int defaultGlyph, heightInPoints;
 
     struct KerningPair
     {
@@ -401,7 +402,8 @@ private:
                 OUTLINETEXTMETRIC otm;
                 if (GetOutlineTextMetrics (dc, sizeof (otm), &otm) != 0)
                 {
-                    lf.lfHeight = -(int) otm.otmEMSquare;
+                    heightInPoints = otm.otmEMSquare;
+                    lf.lfHeight = -(int) heightInPoints;
                     fontH = CreateFontIndirect (&lf);
 
                     SelectObject (dc, fontH);
@@ -480,7 +482,7 @@ private:
         return kerningPairs.getReference (index).kerning;
     }
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowsTypeface);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowsTypeface)
 };
 
 const MAT2 WindowsTypeface::identityMatrix = { { 0, 1 }, { 0, 0 }, { 0, 0 }, { 0, 1 } };
@@ -492,7 +494,12 @@ Typeface::Ptr Typeface::createSystemTypefaceFor (const Font& font)
 
     if (factories.systemFonts != nullptr)
         return new WindowsDirectWriteTypeface (font, factories.systemFonts);
-    else
    #endif
-        return new WindowsTypeface (font);
+
+    return new WindowsTypeface (font);
+}
+
+void Typeface::scanFolderForFonts (const File&)
+{
+    jassertfalse; // not implemented on this platform
 }

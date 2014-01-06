@@ -1,33 +1,29 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
 
-#ifndef __JUCE_FONT_JUCEHEADER__
-#define __JUCE_FONT_JUCEHEADER__
-
-#include "juce_Typeface.h"
-class LowLevelGraphicsContext;
+#ifndef JUCE_FONT_H_INCLUDED
+#define JUCE_FONT_H_INCLUDED
 
 
 //==============================================================================
@@ -76,13 +72,6 @@ public:
         @see FontStyleFlags, getDefaultSansSerifFontName
     */
     Font (const String& typefaceName, float fontHeight, int styleFlags);
-
-    /** Creates a sans-serif font in a given style and size.
-
-        @param typefaceStyle the font style of the typeface to use
-        @param fontHeight   the height in pixels (can be fractional)
-    */
-    Font (const String& typefaceStyle, float fontHeight);
 
     /** Creates a font with a given typeface and parameters.
 
@@ -149,19 +138,20 @@ public:
     const String& getTypefaceName() const noexcept;
 
     //==============================================================================
-    /** Changes the font style of the typeface
-
-        e.g. "Regular", "Italic", etc.
-
-    */
-    void setTypefaceStyle (const String& typefaceStyle);
-
     /** Returns the font style of the typeface that this font uses.
-
-        e.g. "Regular", "Italic", etc.
-
+        @see withTypefaceStyle, getAvailableStyles()
     */
     const String& getTypefaceStyle() const noexcept;
+
+    /** Changes the font style of the typeface.
+        @see getAvailableStyles()
+    */
+    void setTypefaceStyle (const String& newStyle);
+
+    /** Returns a copy of this font with a new typeface style.
+        @see getAvailableStyles()
+    */
+    Font withTypefaceStyle (const String& newStyle) const;
 
     /** Returns a list of the styles that this font can use. */
     StringArray getAvailableStyles() const;
@@ -210,17 +200,11 @@ public:
     static Typeface::Ptr getDefaultTypefaceForFont (const Font& font);
 
     //==============================================================================
-    /** Returns the total height of this font.
-
-        This is the maximum height, from the top of the ascent to the bottom of the
-        descenders.
-
-        @see withHeight, setHeightWithoutChangingWidth, getAscent
-    */
-    float getHeight() const noexcept;
-
     /** Returns a copy of this font with a new height. */
     Font withHeight (float height) const;
+
+    /** Returns a copy of this font with a new height, specified in points. */
+    Font withPointHeight (float heightInPoints) const;
 
     /** Changes the font's height.
         @see getHeight, withHeight, setHeightWithoutChangingWidth
@@ -232,17 +216,45 @@ public:
     */
     void setHeightWithoutChangingWidth (float newHeight);
 
-    /** Returns the height of the font above its baseline.
+    /** Returns the total height of this font, in pixels.
+        This is the maximum height, from the top of the ascent to the bottom of the
+        descenders.
+
+        @see withHeight, setHeightWithoutChangingWidth, getAscent
+    */
+    float getHeight() const noexcept;
+
+    /** Returns the total height of this font, in points.
+        This is the maximum height, from the top of the ascent to the bottom of the
+        descenders.
+
+        @see withPointHeight, getHeight
+    */
+    float getHeightInPoints() const;
+
+    /** Returns the height of the font above its baseline, in pixels.
         This is the maximum height from the baseline to the top.
         @see getHeight, getDescent
     */
     float getAscent() const;
 
-    /** Returns the amount that the font descends below its baseline.
+    /** Returns the height of the font above its baseline, in points.
+        This is the maximum height from the baseline to the top.
+        @see getHeight, getDescent
+    */
+    float getAscentInPoints() const;
+
+    /** Returns the amount that the font descends below its baseline, in pixels.
         This is calculated as (getHeight() - getAscent()).
         @see getAscent, getHeight
     */
     float getDescent() const;
+
+    /** Returns the amount that the font descends below its baseline, in points.
+        This is calculated as (getHeight() - getAscent()).
+        @see getAscent, getHeight
+    */
+    float getDescentInPoints() const;
 
     //==============================================================================
     /** Returns the font's style flags.
@@ -287,7 +299,6 @@ public:
 
     //==============================================================================
     /** Returns the font's horizontal scale.
-
         A value of 1.0 is the normal scale, less than this will be narrower, greater
         than 1.0 will be stretched out.
 
@@ -349,13 +360,11 @@ public:
 
     //==============================================================================
     /** Returns the total width of a string as it would be drawn using this font.
-
         For a more accurate floating-point result, use getStringWidthFloat().
     */
     int getStringWidth (const String& text) const;
 
     /** Returns the total width of a string as it would be drawn using this font.
-
         @see getStringWidth
     */
     float getStringWidthFloat (const String& text) const;
@@ -442,8 +451,10 @@ private:
     class SharedFontInternal;
     ReferenceCountedObjectPtr <SharedFontInternal> font;
     void dupeInternalIfShared();
+    void checkTypefaceSuitability();
+    float getHeightToPointsFactor() const;
 
-    JUCE_LEAK_DETECTOR (Font);
+    JUCE_LEAK_DETECTOR (Font)
 };
 
-#endif   // __JUCE_FONT_JUCEHEADER__
+#endif   // JUCE_FONT_H_INCLUDED
