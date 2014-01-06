@@ -62,7 +62,8 @@
         <MODULEPATH id="juce_audio_basics" path="JuceLibraryCode/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2013 targetFolder="Builds/VisualStudio2013" vstFolder="Third-Party\vstsdk2.4">
+    <VS2013 targetFolder="Builds/VisualStudio2013" vstFolder="Third-Party\vstsdk2.4"
+            extraCompilerFlags="/I ../../Third-Party/TeragonGuiComponents/Components/PluginParameters/include /I ../../Third-Party/TeragonGuiComponents/Components/Plugin /I ../../Third-Party/TeragonGuiComponents/Components/Source">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
                        isDebug="1" optimisation="1" targetName="NotNotchFilter"/>
