@@ -90,13 +90,13 @@
   <MAINGROUP id="Fyqdnh" name="NotNotchFilter">
     <GROUP id="{42779670-7EBB-6F9C-0A18-8711F81B5812}" name="Components">
       <GROUP id="{103C5FE0-7904-7877-D35F-38798D264C2D}" name="Plugin">
-        <GROUP id="{D1FAD171-823F-8E74-990B-C4B103218255}" name="arduino-base64">
-          <FILE id="AK1JxF" name="Base64.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/Plugin/arduino-base64/Base64.cpp"/>
-          <FILE id="OUtiyb" name="Base64.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/Plugin/arduino-base64/Base64.h"/>
+        <GROUP id="{79D62855-88FA-FD17-4BFA-BB53FFD82148}" name="arduino-base64">
+          <FILE id="NpBy4i" name="Base64.cpp" compile="1" resource="0" file="Third-Party/TeragonGuiComponents/Components/Plugin/arduino-base64/Base64.cpp"/>
+          <FILE id="nQen9U" name="Base64.h" compile="0" resource="0" file="Third-Party/TeragonGuiComponents/Components/Plugin/arduino-base64/Base64.h"/>
         </GROUP>
-        <FILE id="jCsATy" name="TeragonPluginBase.cpp" compile="1" resource="0"
+        <FILE id="YRiQeR" name="TeragonPluginBase.cpp" compile="1" resource="0"
               file="Third-Party/TeragonGuiComponents/Components/Plugin/TeragonPluginBase.cpp"/>
-        <FILE id="DgsE1l" name="TeragonPluginBase.h" compile="0" resource="0"
+        <FILE id="FnJsav" name="TeragonPluginBase.h" compile="0" resource="0"
               file="Third-Party/TeragonGuiComponents/Components/Plugin/TeragonPluginBase.h"/>
       </GROUP>
       <GROUP id="{3E53114B-1226-72B1-BC72-462AA651FD63}" name="PluginParameters">
@@ -177,15 +177,13 @@
       </GROUP>
     </GROUP>
     <GROUP id="{B522E367-7924-268E-2867-794D2485D3B5}" name="Source">
-      <FILE id="Wa2mKo" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="piIL6W" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="TXC19l" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="aWOdu9" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="qfLjZX" name="ValleyParameter.h" compile="0" resource="0"
-            file="Source/ValleyParameter.h"/>
+      <FILE id="Wa2mKo" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="piIL6W" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
