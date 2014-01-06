@@ -17,7 +17,7 @@
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="NotNotchFilter"
                        osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="Native"
                        cppLibType="libc++"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="2" targetName="NotNotchFilter"
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="NotNotchFilter"
                        osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="64BitUniversal"
                        cppLibType="libc++"/>
       </CONFIGURATIONS>
@@ -34,16 +34,20 @@
         <MODULEPATH id="juce_audio_basics" path="JuceLibraryCode/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <LINUX_MAKE targetFolder="Builds/Linux" vstFolder="Third-Party/vstsdk2.4">
+    <LINUX_MAKE targetFolder="Builds/Linux" vstFolder="Third-Party/vstsdk2.4"
+                extraCompilerFlags="-std=c++11 -I../../Third-Party/TeragonGuiComponents/Components/Source -I../../Third-Party/TeragonGuiComponents/Components/PluginParameters/include">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug-i386" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
-                       targetName="NotNotchFilter" linuxArchitecture="-m32"/>
+                       targetName="NotNotchFilter" linuxArchitecture="-m32" binaryPath="Builds/Linux/Debug-i386"/>
         <CONFIGURATION name="Release-i386" libraryPath="/usr/X11R6/lib/" isDebug="0"
-                       optimisation="2" targetName="NotNotchFilter" linuxArchitecture="-m32"/>
+                       optimisation="3" targetName="NotNotchFilter" linuxArchitecture="-m32"
+                       binaryPath="Builds/Linux/Release-i386"/>
         <CONFIGURATION name="Debug-x86_64" libraryPath="/usr/X11R6/lib/" isDebug="1"
-                       optimisation="1" targetName="NotNotchFilter" linuxArchitecture="-m64"/>
+                       optimisation="1" targetName="NotNotchFilter" linuxArchitecture="-m64"
+                       binaryPath="Builds/Linux/Debug-x86_64"/>
         <CONFIGURATION name="Release-x86_64" libraryPath="/usr/X11R6/lib/" isDebug="0"
-                       optimisation="2" targetName="NotNotchFilter" linuxArchitecture="-m64"/>
+                       optimisation="3" targetName="NotNotchFilter" linuxArchitecture="-m64"
+                       binaryPath="Builds/Linux/Release-x86_64"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_gui_extra" path="JuceLibraryCode/modules"/>
